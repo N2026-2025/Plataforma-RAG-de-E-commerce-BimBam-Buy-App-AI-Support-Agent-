@@ -160,7 +160,6 @@ class RagPipeline:
                 collection_name=COLLECTION_NAME,
                 persist_directory=str(PERSIST_DIR),
             )
-            self.vectorstore.persist()
 
         self.bm25_index = BM25Index.from_documents(self._chunks)
         self.hybrid_retriever = HybridRetriever(self.vectorstore, self.bm25_index)
