@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BimBam Buy · Asistente IA de Soporte</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --user-msg: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
+      --bot-msg: #ffffff;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--primary-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+    }
+
+    .brand-info h1 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-info .status {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+      70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+      color: #1e293b;
+    }
+
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 860px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .welcome-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      margin-top: 10px;
+    }
+
+    .welcome-card h2 {
+      font-size: 1.15rem;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .welcome-card p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .chip {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      color: #334155;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .chip:hover {
+      background: #e0e7ff;
+      border-color: #c7d2fe;
+      color: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .message-row {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message-row.user {
+      justify-content: flex-end;
+    }
+
+    .message-row.bot {
+      justify-content: flex-start;
+    }
+
+    .msg-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: var(--primary-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    .msg-bubble {
+      max-width: 78%;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 0.92rem;
+      line-height: 1.55;
+      word-break: break-word;
+    }
+
+    .message-row.user .msg-bubble {
+      background: var(--user-msg);
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    }
+
+    .message-row.bot .msg-bubble {
+      background: var(--bot-msg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+
+    .msg-bubble p {
+      margin-bottom: 8px;
+    }
+
+    .msg-bubble p:last-child {
+      margin-bottom: 0;
+    }
+
+    .msg-bubble ul, .msg-bubble ol {
+      margin-left: 20px;
+      margin-bottom: 8px;
+    }
+
+    .sources-box {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .source-tag {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      color: #475569;
+    }
+
+    .meta-box {
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+    }
+
+    .feedback-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-feedback {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 7px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+
+    .btn-feedback:hover:not(:disabled) {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    .btn-feedback:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 4px;
+      padding: 6px 10px;
+      align-items: center;
+    }
+
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+
+    .input-area {
+      background: var(--card-bg);
+      border-top: 1px solid var(--border);
+      padding: 14px 20px;
+      max-width: 860px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .input-wrapper {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 4px 6px 4px 16px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+      background: #ffffff;
+    }
+
+    .input-wrapper input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      outline: none;
+      font-family: inherit;
+      font-size: 0.95rem;
+      color: var(--text);
+      padding: 8px 0;
+    }
+
+    .btn-send {
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .btn-send:hover:not(:disabled) {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    }
+
+    .btn-send:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo">🛍️</div>
+      <div class="brand-info">
+        <h1>BimBam Buy AI</h1>
+        <div class="status">
+          <span class="status-dot"></span>
+          <span>En línea · Asistente de Soporte Oficial</span>
+        </div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" onclick="resetSession()" title="Reiniciar sesión de chat">
+        🔄 Nueva conversación
+      </button>
+      <a class="btn-secondary" href="/docs" target="_blank" title="Ver documentación de API">
+        📖 Swagger Docs
+      </a>
+    </div>
+  </header>
+
+  <div class="chat-container" id="chatContainer">
+    <div class="welcome-card" id="welcomeCard">
+      <h2>¡Hola! 👋 Te damos la bienvenida a BimBam Buy</h2>
+      <p>Soy tu agente de soporte inteligente. Respondé tus dudas sobre envíos, pagos, devoluciones, garantías y más.</p>
+      <div class="chips">
+        <button class="chip" onclick="askChip(this)">📦 ¿Cuánto tarda el envío y cómo lo rastreo?</button>
+        <button class="chip" onclick="askChip(this)">🔄 ¿Cómo solicito una devolución o reembolso?</button>
+        <button class="chip" onclick="askChip(this)">💳 ¿Cuáles son los métodos de pago aceptados?</button>
+        <button class="chip" onclick="askChip(this)">🛡️ ¿Qué cobertura tiene la garantía?</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <div class="input-wrapper">
+      <input 
+        type="text" 
+        id="questionInput" 
+        placeholder="Escribí tu consulta aquí..." 
+        autocomplete="off"
+        onkeydown="handleKey(event)"
+      />
+      <button class="btn-send" id="sendBtn" onclick="sendQuestion()" title="Enviar mensaje">
+        ➤
+      </button>
+    </div>
+    <div class="footer-note">
+      Respuestas generadas por IA basadas en la base de conocimiento oficial de BimBam Buy.
+    </div>
+  </div>
+
+  <script>
+    let sessionId = localStorage.getItem('bimbam_session_id');
+    if (!sessionId) {
+      sessionId = 'session_' + Math.random().toString(36).substring(2, 11);
+      localStorage.setItem('bimbam_session_id', sessionId);
+    }
+
+    const chatContainer = document.getElementById('chatContainer');
+    const questionInput = document.getElementById('questionInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const welcomeCard = document.getElementById('welcomeCard');
+
+    function resetSession() {
+      sessionId = 'session_' + Math.random().toString(36).substring(2, 11);
+      localStorage.setItem('bimbam_session_id', sessionId);
+      chatContainer.innerHTML = '';
+      if (welcomeCard) chatContainer.appendChild(welcomeCard);
+      questionInput.focus();
+    }
+
+    function handleKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendQuestion();
+      }
+    }
+
+    function askChip(btn) {
+      const text = btn.innerText.replace(/^[^\w¿?]+/, '').trim();
+      questionInput.value = text;
+      sendQuestion();
+    }
+
+    function formatText(text) {
+      if (!text) return '';
+      // Simple markdown parser for bold, italic and bullet lists
+      let html = text
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
+
+      // Paragraphs and lists
+      const lines = html.split('\n');
+      let inList = false;
+      let result = [];
+
+      for (let line of lines) {
+        let trimmed = line.trim();
+        if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+          if (!inList) { result.push('<ul>'); inList = true; }
+          result.push(`<li>${trimmed.substring(2)}</li>`);
+        } else {
+          if (inList) { result.push('</ul>'); inList = false; }
+          if (trimmed.length > 0) {
+            result.push(`<p>${line}</p>`);
+          }
+        }
+      }
+      if (inList) result.push('</ul>');
+      return result.join('');
+    }
+
+    async function sendQuestion() {
+      const q = questionInput.value.trim();
+      if (!q) return;
+
+      questionInput.value = '';
+      questionInput.disabled = true;
+      sendBtn.disabled = true;
+
+      // Add user bubble
+      appendMessage('user', q);
+
+      // Add typing indicator
+      const typingEl = appendTypingIndicator();
+      scrollToBottom();
+
+      try {
+        const resp = await fetch('/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: q, session_id: sessionId })
+        });
+
+        if (!resp.ok) {
+          const errData = await resp.json().catch(() => ({}));
+          throw new Error(errData.detail || 'Error al comunicarse con el servidor (' + resp.status + ')');
+        }
+
+        const data = await resp.json();
+        typingEl.remove();
+
+        appendBotMessage(data);
+      } catch (err) {
+        typingEl.remove();
+        appendMessage('bot', '⚠️ Lo siento, ocurrió un error: ' + err.message);
+      } finally {
+        questionInput.disabled = false;
+        sendBtn.disabled = false;
+        questionInput.focus();
+        scrollToBottom();
+      }
+    }
+
+    function appendMessage(role, text) {
+      const row = document.createElement('div');
+      row.className = `message-row ${role}`;
+      row.innerHTML = `
+        ${role === 'bot' ? '<div class="msg-avatar">🤖</div>' : ''}
+        <div class="msg-bubble">${formatText(text)}</div>
+      `;
+      chatContainer.appendChild(row);
+      scrollToBottom();
+      return row;
+    }
+
+    function appendBotMessage(data) {
+      const row = document.createElement('div');
+      row.className = 'message-row bot';
+
+      const sourcesHtml = (data.sources && data.sources.length > 0)
+        ? `<div class="sources-box">
+             <span>📚 Fuentes:</span>
+             ${data.sources.map(s => `<span class="source-tag">📄 ${s}</span>`).join('')}
+           </div>`
+        : '';
+
+      const timingSec = data.timings_ms && data.timings_ms.total
+        ? (data.timings_ms.total / 1000).toFixed(1) + 's'
+        : null;
+
+      const metaHtml = `
+        <div class="meta-box">
+          <span>${timingSec ? '⚡ ' + timingSec : ''}</span>
+          ${data.interaction_id ? `
+            <div class="feedback-group">
+              <span>¿Fue útil?</span>
+              <button class="btn-feedback" onclick="sendFeedback(${data.interaction_id}, 1, this)">👍</button>
+              <button class="btn-feedback" onclick="sendFeedback(${data.interaction_id}, -1, this)">👎</button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+      row.innerHTML = `
+        <div class="msg-avatar">🤖</div>
+        <div class="msg-bubble">
+          ${formatText(data.answer)}
+          ${sourcesHtml}
+          ${metaHtml}
+        </div>
+      `;
+      chatContainer.appendChild(row);
+      scrollToBottom();
+    }
+
+    function appendTypingIndicator() {
+      const row = document.createElement('div');
+      row.className = 'message-row bot';
+      row.innerHTML = `
+        <div class="msg-avatar">🤖</div>
+        <div class="msg-bubble">
+          <div class="typing-dots">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+        </div>
+      `;
+      chatContainer.appendChild(row);
+      return row;
+    }
+
+    async function sendFeedback(interactionId, value, btn) {
+      try {
+        const group = btn.closest('.feedback-group');
+        const buttons = group.querySelectorAll('button');
+        buttons.forEach(b => b.disabled = true);
+
+        const resp = await fetch('/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ interaction_id: interactionId, feedback: value })
+        });
+
+        if (resp.ok) {
+          group.innerHTML = `<span style="color:#10b981; font-weight:600;">✓ ¡Gracias por tu feedback!</span>`;
+        }
+      } catch (e) {
+        console.error('Error enviando feedback:', e);
+      }
+    }
+
+    function scrollToBottom() {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+  </script>
+</body>
+</html>

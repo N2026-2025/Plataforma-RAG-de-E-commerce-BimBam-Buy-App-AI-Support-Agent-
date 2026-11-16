@@ -23,9 +23,10 @@ from __future__ import annotations
 
 import time
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, UploadFile, File
-from fastapi.responses import Response
+from fastapi.responses import Response, HTMLResponse
 from pydantic import BaseModel, Field
 
 from rag.pipeline import get_pipeline
@@ -91,6 +92,19 @@ class AskResponse(BaseModel):
 class FeedbackRequest(BaseModel):
     interaction_id: int
     feedback: int = Field(..., description="1 = 👍 útil, -1 = 👎 no útil")
+
+
+INDEX_HTML_PATH = Path(__file__).resolve().parent / "index.html"
+
+
+# --------------------------------------------------------------------------- #
+# Interfaz Web de Usuario (Chat)
+# --------------------------------------------------------------------------- #
+@app.get("/", response_class=HTMLResponse)
+def index():
+    if INDEX_HTML_PATH.exists():
+        return HTMLResponse(content=INDEX_HTML_PATH.read_text(encoding="utf-8"))
+    return HTMLResponse(content="<h1>BimBam Buy AI Support Agent</h1>")
 
 
 # --------------------------------------------------------------------------- #
