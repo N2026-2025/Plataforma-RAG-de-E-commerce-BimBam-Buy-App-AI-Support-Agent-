@@ -25,12 +25,12 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain.chains import RetrievalQA
 from langchain_core.prompts import PromptTemplate
 from langchain_core.documents import Document
@@ -160,7 +160,8 @@ def build_vectorstore(force_rebuild: bool = False) -> Chroma:
         collection_name=COLLECTION_NAME,
         persist_directory=str(PERSIST_DIR),
     )
-    vectorstore.persist()
+    # Nota: En versiones recientes de langchain-chroma, la persistencia es
+    # automática con `persist_directory` y el método `.persist()` fue removido.
     return vectorstore
 
 
@@ -186,8 +187,21 @@ def get_qa_chain(force_rebuild: bool = False) -> RetrievalQA:
     return chain
 
 
-def answer_question(question: str, chain: RetrievalQA | None = None) -> dict:
-    """Ejecuta la cadena RAG y devuelve la respuesta junto con las fuentes citadas."""
+def answer_question(
+    question: str,
+    chain: RetrievalQA | None = None,
+    session_id: str = "default",
+    pipeline: Optional[object] = None,
+    **kwargs,
+) -> dict:
+    """Ejecuta la cadena RAG y devuelve la respuesta junto con las fuentes citadas.
+
+    Si se proporciona un `pipeline` (RagPipeline avanzado), delega en él para
+    aprovechar búsqueda híbrida, reranking y memoria multi-turno.
+    """
+    if pipeline is not None and hasattr(pipeline, "ask"):
+        return pipeline.ask(question, session_id=session_id)
+
     chain = chain or get_qa_chain()
     result = chain.invoke({"query": question})
 

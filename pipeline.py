@@ -31,7 +31,7 @@ from typing import List, Optional
 
 from langchain_core.documents import Document
 from langchain_core.prompts import PromptTemplate
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from rag.config import (
@@ -84,6 +84,8 @@ def get_embeddings():
         from langchain_cohere import CohereEmbeddings
         return CohereEmbeddings(model=EMBEDDINGS_MODEL)
     if EMBEDDINGS_PROVIDER == "local":
+        # Embeddings locales (ONNX, all-MiniLM-L6-v2), sin API externa.
+        # Requiere haber corrido antes: python -m rag.local_embeddings.download
         from rag.embeddings_local import ONNXEmbeddings
         return ONNXEmbeddings()
     raise ValueError(f"EMBEDDINGS_PROVIDER no soportado: {EMBEDDINGS_PROVIDER}")
@@ -157,7 +159,6 @@ class RagPipeline:
                 collection_name=COLLECTION_NAME,
                 persist_directory=str(PERSIST_DIR),
             )
-            self.vectorstore.persist()
 
         self.bm25_index = BM25Index.from_documents(self._chunks)
         self.hybrid_retriever = HybridRetriever(self.vectorstore, self.bm25_index)
