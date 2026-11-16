@@ -38,10 +38,28 @@ OCR_MIN_CHARS_PER_PAGE = int(os.getenv("OCR_MIN_CHARS_PER_PAGE", "20"))
 OCR_LANG = os.getenv("OCR_LANG", "spa")  # idioma de tesseract (español)
 
 # --- LLM / Embeddings ---------------------------------------------------------
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai").lower()
-LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
-EMBEDDINGS_PROVIDER = os.getenv("EMBEDDINGS_PROVIDER", LLM_PROVIDER).lower()
-EMBEDDINGS_MODEL = os.getenv("EMBEDDINGS_MODEL", "text-embedding-3-small")
+LLM_PROVIDER = os.getenv(
+    "LLM_PROVIDER", "google" if os.getenv("GOOGLE_API_KEY") else "openai"
+).lower()
+
+_default_llm_model = (
+    "gemini-1.5-flash"
+    if LLM_PROVIDER == "google"
+    else ("command-r" if LLM_PROVIDER == "cohere" else "gpt-4o-mini")
+)
+LLM_MODEL = os.getenv("LLM_MODEL", _default_llm_model)
+if LLM_PROVIDER == "google" and ("gpt" in LLM_MODEL.lower() or not LLM_MODEL):
+    LLM_MODEL = "gemini-1.5-flash"
+
+_default_emb_provider = "local" if os.getenv("RENDER") else LLM_PROVIDER
+EMBEDDINGS_PROVIDER = os.getenv("EMBEDDINGS_PROVIDER", _default_emb_provider).lower()
+
+_default_emb_model = (
+    "models/embedding-001"
+    if EMBEDDINGS_PROVIDER == "google"
+    else ("embed-multilingual-v3.0" if EMBEDDINGS_PROVIDER == "cohere" else "text-embedding-3-small")
+)
+EMBEDDINGS_MODEL = os.getenv("EMBEDDINGS_MODEL", _default_emb_model)
 
 # --- Embeddings locales (ONNX, sin API externa) -------------------------------
 # Usados cuando EMBEDDINGS_PROVIDER=local. Ver rag/embeddings_local.py y
@@ -55,6 +73,11 @@ LOCAL_EMBEDDINGS_MODEL_PATH = Path(
 RERANKER_MODEL = os.getenv(
     "RERANKER_MODEL", "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"
 )
+# En entornos con memoria limitada (como Render Free Tier a 512MB), desactivamos por defecto
+# el cross-encoder PyTorch para prevenir OOM (502 Bad Gateway), usando directamente el ranking RRF.
+ENABLE_RERANKER = os.getenv(
+    "ENABLE_RERANKER", "false" if os.getenv("RENDER") else "true"
+).lower() in ("true", "1", "yes")
 
 # --- Memoria conversacional ---------------------------------------------------
 MAX_HISTORY_TURNS = int(os.getenv("MAX_HISTORY_TURNS", "6"))

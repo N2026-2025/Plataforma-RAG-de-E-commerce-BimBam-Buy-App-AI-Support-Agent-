@@ -21,6 +21,7 @@ iniciar el proceso (lifespan) para no reconstruir el índice en cada request.
 
 from __future__ import annotations
 
+import logging
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -28,6 +29,8 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import Response, HTMLResponse
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger("bimbam_app")
 
 from rag.pipeline import get_pipeline
 from rag.memory import new_session_id
@@ -134,6 +137,7 @@ def ask(payload: AskRequest):
     try:
         result = answer_question(payload.question, session_id=session_id, pipeline=pipeline)
     except Exception as exc:  # noqa: BLE001
+        logger.exception("Error al responder /ask: %s", exc)
         ERRORS_TOTAL.labels(endpoint="/ask").inc()
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 

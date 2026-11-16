@@ -18,12 +18,15 @@ Pipeline de dos etapas:
 
 from __future__ import annotations
 
+import logging
 from functools import lru_cache
 from typing import List
 
 from langchain_core.documents import Document
 
-from rag.config import RERANK_TOP_N, RERANKER_MODEL
+from rag.config import ENABLE_RERANKER, RERANK_TOP_N, RERANKER_MODEL
+
+logger = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=1)
@@ -38,20 +41,39 @@ def rerank(query: str, candidates: List[Document], top_n: int = RERANK_TOP_N) ->
     """Reordena `candidates` por relevancia real respecto a `query` y devuelve
     los `top_n` mejores, cada uno con el score de reranking en su metadata
     (`rerank_score`) para trazabilidad/observabilidad.
+
+    Si ENABLE_RERANKER está desactivado (por defecto en entornos con memoria
+    limitada como Render Free Tier a 512MB) o si falla la carga del modelo,
+    utiliza directamente el ranking RRF de la etapa híbrida previa (BM25 + Vector).
     """
     if not candidates:
         return []
 
-    model = _get_cross_encoder()
-    pairs = [(query, doc.page_content) for doc in candidates]
-    scores = model.predict(pairs)
+    if not ENABLE_RERANKER:
+        reranked_docs = []
+        for i, doc in enumerate(candidates[:top_n]):
+            doc.metadata["rerank_score"] = float(doc.metadata.get("rrf_score", 1.0 / (i + 1)))
+            reranked_docs.append(doc)
+        return reranked_docs
 
-    scored = list(zip(candidates, scores))
-    scored.sort(key=lambda pair: pair[1], reverse=True)
+    try:
+        model = _get_cross_encoder()
+        pairs = [(query, doc.page_content) for doc in candidates]
+        scores = model.predict(pairs)
 
-    reranked_docs = []
-    for doc, score in scored[:top_n]:
-        doc.metadata["rerank_score"] = float(score)
-        reranked_docs.append(doc)
+        scored = list(zip(candidates, scores))
+        scored.sort(key=lambda pair: pair[1], reverse=True)
 
-    return reranked_docs
+        reranked_docs = []
+        for doc, score in scored[:top_n]:
+            doc.metadata["rerank_score"] = float(score)
+            reranked_docs.append(doc)
+
+        return reranked_docs
+    except Exception as exc:
+        logger.warning("Reranking omitido por error o recursos insuficientes: %s. Usando ranking RRF.", exc)
+        reranked_docs = []
+        for i, doc in enumerate(candidates[:top_n]):
+            doc.metadata["rerank_score"] = float(doc.metadata.get("rrf_score", 1.0 / (i + 1)))
+            reranked_docs.append(doc)
+        return reranked_docs
