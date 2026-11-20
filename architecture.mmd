@@ -111,10 +111,10 @@ flowchart TB
     Prom --> Grafana
     Logs --> Grafana
 
-    GT -.usa chunks indexados.-> Splitter
+    GT -."usa chunks indexados".-> Splitter
     GT --> RetrievalEval
-    RetrievalEval -.compara.-> RRF
-    RetrievalEval -.compara.-> CrossEnc
+    RetrievalEval -."compara".-> RRF
+    RetrievalEval -."compara".-> CrossEnc
     GT --> AnswerEval
     AnswerEval -.evalúa.-> LLM
 

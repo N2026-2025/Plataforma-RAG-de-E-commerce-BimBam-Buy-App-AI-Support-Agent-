@@ -23,3 +23,10 @@ models/
 .gitignore
 
 .bruin.yml
+
+# Documentación y guías privadas de entrevista
+*.pdf
+Guia_Entrevista_IT_BimBam_Buy_RAG.pdf
+
+# Material de ventas: sí versionar el PDF de la propuesta
+!ventas/*.pdf

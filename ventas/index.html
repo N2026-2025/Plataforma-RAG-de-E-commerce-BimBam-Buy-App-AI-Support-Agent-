@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BimBam Buy AI Agent · Propuesta Comercial</title>
+  <meta name="description" content="Propuesta comercial genérica: agente IA de soporte y ventas para e-commerce con herramientas, datos vivos y canal de conversación.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-2: #8b5cf6;
+      --primary-grad: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --ok: #059669;
+      --radius: 18px;
+      --shadow: 0 10px 30px rgba(15, 23, 42, .08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.6;
+    }
+
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+    /* ---------------- NAV (screen) ---------------- */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: saturate(180%) blur(12px);
+      background: rgba(255, 255, 255, .82);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; padding: 14px 0;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.02rem; }
+    .brand .dot {
+      width: 34px; height: 34px; border-radius: 10px; background: var(--primary-grad);
+      display: grid; place-items: center; color: #fff; font-size: 1.05rem;
+    }
+    .nav-links { display: flex; align-items: center; gap: 18px; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-weight: 600; font-size: .92rem; }
+    .nav-links a:hover { color: var(--primary); }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--primary-grad); color: #fff; text-decoration: none;
+      padding: 10px 16px; border-radius: 999px; font-weight: 700; font-size: .9rem;
+      border: 0; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(99, 102, 241, .35); }
+    .btn.ghost { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+
+    /* ---------------- HERO ---------------- */
+    .hero {
+      padding: 72px 0 40px;
+      background:
+        radial-gradient(900px 380px at 12% -10%, rgba(99, 102, 241, .16), transparent 60%),
+        radial-gradient(700px 320px at 95% 0%, rgba(139, 92, 246, .16), transparent 60%);
+    }
+    .eyebrow {
+      display: inline-block; font-weight: 700; font-size: .78rem; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--primary);
+      background: rgba(99, 102, 241, .1); border: 1px solid rgba(99, 102, 241, .25);
+      padding: 6px 12px; border-radius: 999px; margin-bottom: 18px;
+    }
+    .hero h1 { font-size: clamp(2rem, 4.6vw, 3.2rem); line-height: 1.12; font-weight: 800; letter-spacing: -.02em; }
+    .hero h1 span { background: var(--primary-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero p.lead { margin-top: 18px; font-size: 1.12rem; color: var(--muted); max-width: 760px; }
+    .hero-meta {
+      margin-top: 28px; display: flex; flex-wrap: wrap; gap: 12px 26px;
+      color: var(--muted); font-size: .92rem; font-weight: 600;
+    }
+    .hero-meta b { color: var(--ink); }
+    .hero-cta { margin-top: 30px; display: flex; flex-wrap: wrap; gap: 12px; }
+
+    /* ---------------- SECTIONS ---------------- */
+    section { padding: 46px 0; }
+    .section-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -.01em; margin-bottom: 8px; }
+    .section-sub { color: var(--muted); margin-bottom: 26px; max-width: 720px; }
+
+    .grid { display: grid; gap: 18px; }
+    .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 22px; box-shadow: var(--shadow);
+    }
+    .card h3 { font-size: 1.02rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+    .card p { color: var(--muted); font-size: .95rem; }
+    .icon-chip {
+      width: 38px; height: 38px; border-radius: 11px; flex: 0 0 auto;
+      display: grid; place-items: center; font-size: 1.15rem;
+      background: rgba(99, 102, 241, .1); border: 1px solid rgba(99, 102, 241, .2);
+    }
+
+    ul.checks { list-style: none; display: grid; gap: 10px; }
+    ul.checks li { display: flex; gap: 10px; align-items: flex-start; color: var(--muted); font-size: .95rem; }
+    ul.checks li::before { content: "✓"; color: var(--ok); font-weight: 800; flex: 0 0 auto; }
+
+    /* ---------------- PRICING ---------------- */
+    .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: stretch; }
+    .plan {
+      position: relative; background: var(--card); border: 1px solid var(--line);
+      border-radius: 22px; padding: 26px; display: flex; flex-direction: column; gap: 14px;
+      box-shadow: var(--shadow);
+    }
+    .plan.featured { border: 2px solid var(--primary); }
+    .plan .tag {
+      position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+      background: var(--primary-grad); color: #fff; font-size: .72rem; font-weight: 700;
+      padding: 5px 12px; border-radius: 999px; letter-spacing: .04em; text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .plan .name { font-weight: 800; font-size: 1.05rem; }
+    .plan .for { color: var(--muted); font-size: .85rem; min-height: 2.4em; }
+    .price { display: flex; align-items: baseline; gap: 6px; }
+    .price .amount { font-size: 2.1rem; font-weight: 800; letter-spacing: -.02em; }
+    .price .rec { color: var(--muted); font-weight: 600; font-size: .92rem; }
+    .range { font-size: .78rem; color: var(--muted); }
+    .plan ul { list-style: none; display: grid; gap: 9px; margin-top: 4px; flex: 1; }
+    .plan ul li { display: flex; gap: 9px; font-size: .9rem; color: var(--muted); align-items: flex-start; }
+    .plan ul li::before { content: "✓"; color: var(--ok); font-weight: 800; }
+
+    /* ---------------- TABLES ---------------- */
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); }
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; min-width: 620px; }
+    th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { background: #f1f5f9; font-weight: 700; font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+    tr:last-child td { border-bottom: 0; }
+    td.num, th.num { text-align: right; white-space: nowrap; }
+    .pill { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: .75rem; font-weight: 700; background: rgba(99,102,241,.1); color: var(--primary); }
+    .pill.ok { background: rgba(5,150,105,.12); color: var(--ok); }
+
+    /* ---------------- CALLOUT ---------------- */
+    .callout {
+      background: linear-gradient(135deg, rgba(99,102,241,.08), rgba(139,92,246,.08));
+      border: 1px solid rgba(99,102,241,.25); border-radius: var(--radius);
+      padding: 20px 22px; font-size: .98rem;
+    }
+    .callout .quote { font-weight: 700; font-size: 1.08rem; }
+    .callout .who { color: var(--muted); font-size: .82rem; margin-top: 6px; }
+
+    /* ---------------- CTA ---------------- */
+    .cta {
+      background: var(--primary-grad); color: #fff; border-radius: 24px;
+      padding: 40px 32px; text-align: center;
+    }
+    .cta h2 { font-size: 1.7rem; font-weight: 800; margin-bottom: 10px; }
+    .cta p { opacity: .92; max-width: 620px; margin: 0 auto 22px; }
+    .cta .btn { background: #fff; color: var(--ink); }
+    .cta .btn.ghost { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.5); }
+
+    footer { padding: 30px 0 50px; color: var(--muted); font-size: .82rem; text-align: center; }
+    footer .placeholders { margin-top: 8px; opacity: .8; }
+
+    .page-break { break-before: page; }
+    .no-print { }
+
+    /* ---------------- RESPONSIVE ---------------- */
+    @media (max-width: 900px) {
+      .grid.cols-3, .plans { grid-template-columns: 1fr; }
+      .grid.cols-2 { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      .plan .for { min-height: 0; }
+    }
+
+    /* ---------------- PRINT ---------------- */
+    @page { size: A4; margin: 12mm 13mm; }
+
+    @media print {
+      body { background: #fff; font-size: 10.5pt; }
+      .no-print { display: none !important; }
+      .wrap { max-width: none; padding: 0; }
+      .nav { position: static; backdrop-filter: none; background: #fff; border-bottom: 1px solid #000; }
+      .hero { padding: 18px 0 8px; background: none; }
+      .hero h1 { font-size: 19pt; }
+      .hero p.lead { font-size: 10.5pt; margin-top: 8px; }
+      .hero-meta { margin-top: 12px; font-size: 9pt; }
+      section { padding: 12px 0; }
+      .section-title { font-size: 13.5pt; margin-bottom: 4px; }
+      .section-sub { font-size: 9.5pt; margin-bottom: 10px; }
+      .card, .plan, .table-wrap, .callout { box-shadow: none; border: 1px solid #94a3b8; break-inside: avoid; }
+      .grid { gap: 8px; }
+      .grid.cols-3, .plans, .grid.cols-2 { grid-template-columns: 1fr 1fr; }
+      .plans { grid-template-columns: 1fr; }
+      .plan { padding: 14px; gap: 8px; }
+      .plan .tag { position: static; transform: none; display: inline-block; margin-bottom: 6px; }
+      .price .amount { font-size: 15pt; }
+      th, td { padding: 6px 8px; font-size: 8.6pt; }
+      th { background: #e2e8f0; }
+      table { min-width: 0; }
+      .cta { background: #fff; color: #0f172a; border: 1px solid #94a3b8; padding: 18px; }
+      .cta h2 { font-size: 14pt; }
+      .cta p { color: #475569; }
+      .page-break { break-before: page; }
+      h2, h3 { break-after: avoid; }
+      tr { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===================== NAV ===================== -->
+<header class="nav no-print">
+  <div class="wrap nav-inner">
+    <div class="brand">
+      <span class="dot">🛒</span>
+      BimBam Buy · AI Agent
+    </div>
+    <nav class="nav-links">
+      <a href="#resumen">Resumen</a>
+      <a href="#solucion">Solución</a>
+      <a href="#planes">Planes</a>
+      <a href="#costos">Costos</a>
+      <a href="#condiciones">Condiciones</a>
+      <a class="btn" href="presentacion.html">Ver presentación</a>
+      <a class="btn ghost" href="propuesta.pdf" download>Descargar PDF</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ===================== HERO ===================== -->
+<div class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Propuesta comercial · v1.0</span>
+    <h1>Agente IA de <span>Soporte y Ventas</span> para e-commerce</h1>
+    <p class="lead">
+      De contestar PDFs a <b>ejecutar acciones</b>: un agente que se conecta a la tienda,
+      lee precios y stock en tiempo real, atiende por WhatsApp y deja los clientes
+      listos para pagar.
+    </p>
+    <div class="hero-meta">
+      <span>Cliente: <b>[Nombre del cliente / comercio]</b></span>
+      <span>Fecha: <b>[DD/MM/AAAA]</b></span>
+      <span>Validez: <b>30 días</b></span>
+    </div>
+    <div class="hero-cta no-print">
+      <a class="btn" href="#planes">Ver planes y precios</a>
+      <a class="btn ghost" href="#costos">Ver sustento de costos</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== RESUMEN ===================== -->
+<section id="resumen">
+  <div class="wrap">
+    <h2 class="section-title">Resumen ejecutivo</h2>
+    <p class="section-sub">
+      Hoy el asistente responde consultas a partir de documentación interna. La propuesta es
+      dar el salto a un <b>agente con herramientas y datos vivos</b>, vendido por el canal y
+      por la conversión que genera, no por la tecnología que usa.
+    </p>
+    <div class="grid cols-3">
+      <div class="card">
+        <h3><span class="icon-chip">🔧</span>Herramientas, no solo respuestas</h3>
+        <p>Se conecta a la API de Tiendanube, Shopify o WooCommerce y ejecuta acciones: consultar el estado de un pedido, datos de envío, devoluciones y más.</p>
+      </div>
+      <div class="card">
+        <h3><span class="icon-chip">⚡</span>Datos vivos, no PDFs</h3>
+        <p>Lee precios y stock desde Google Sheets o la base de productos del cliente, sin reimprimir ni actualizar documentos cuando algo cambia.</p>
+      </div>
+      <div class="card">
+        <h3><span class="icon-chip">💬</span>Canal y conversión</h3>
+        <p>Atiende por WhatsApp Business, recupera carritos abandonados y deriva a los clientes listos para pagar al equipo de ventas.</p>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:22px">
+      <div class="quote">"Hola, tu paquete ya salió por Andreani y llega mañana."</div>
+      <div class="who">Caso de uso objetivo: el cliente manda el número de pedido y el agente responde con datos reales de la tienda y del transporte.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== DIAGNOSTICO ===================== -->
+<section id="diagnostico" style="padding-top:8px">
+  <div class="wrap">
+    <h2 class="section-title">El problema que resolvemos</h2>
+    <p class="section-sub">Los commerce chicos y medianos pierden ventas y tiempo por la atención manual y la información desactualizada.</p>
+    <div class="grid cols-2">
+      <div class="card">
+        <h3>⏱️ Tiempo de respuesta</h3>
+        <p>Consultas de "¿dónde está mi pedido?", "¿tienen stock?" o "¿qué métodos de pago?" quedan sin respuesta horas o días, y muchas terminan en venta perdida.</p>
+      </div>
+      <div class="card">
+        <h3>🛒 Carritos abandonados</h3>
+        <p>La mayoría de los carritos no se completan. Sin un canal automático que recupere ese interés, se pierde un porcentaje directo de ingresos.</p>
+      </div>
+      <div class="card">
+        <h3>📄 Información desactualizada</h3>
+        <p>Los PDFs y manuales se vencen: si un precio o una política cambia, el equipo responde con datos viejos o directamente no la encuentra.</p>
+      </div>
+      <div class="card">
+        <h3>📉 Equipo saturado</h3>
+        <p>El equipo de soporte y ventas repite las mismas respuestas una y otra vez, y no le sobra tiempo para atender a los clientes listos para comprar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SOLUCION ===================== -->
+<section id="solucion" class="page-break">
+  <div class="wrap">
+    <h2 class="section-title">La solución</h2>
+    <p class="section-sub">
+      Un agente conversacional que combina una base de conocimiento (políticas, FAQs, garantías)
+      con herramientas en tiempo real y memoria por cliente.
+    </p>
+    <div class="grid cols-3">
+      <div class="card">
+        <h3>🔌 Integración con la tienda</h3>
+        <ul class="checks">
+          <li>Estado y tracking del pedido</li>
+          <li>Datos de envío y transporte</li>
+          <li>Devoluciones y reembolsos</li>
+          <li>Precios y stock en vivo</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>🧠 Memoria y contexto</h3>
+        <ul class="checks">
+          <li>Conversación multi-turno</li>
+          <li>Historial por cliente</li>
+          <li>Reformulación de preguntas</li>
+          <li>Handoff a ventas / soporte</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>📊 Medición</h3>
+        <ul class="checks">
+          <li>Consultas y tiempos de respuesta</li>
+          <li>Carritos recuperados</li>
+          <li>Leads derivados a ventas</li>
+          <li>Feedback 👍 / 👎 por respuesta</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:22px">
+      <div class="quote">Vendemos el canal y la conversión, no el stack.</div>
+      <div class="who">A un comercio no le importa si usás ChromaDB, ONNX o LangChain. Le importa que atienda por WhatsApp, recupere carritos y le pase clientes listos para pagar a su equipo.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PLANES ===================== -->
+<section id="planes" class="page-break">
+  <div class="wrap">
+    <h2 class="section-title">Planes y precios</h2>
+    <p class="section-sub">
+      Precios de lista dentro de los rangos de referencia. Todos incluyen puesta en marcha,
+      configuración inicial y soporte por 30 días.
+    </p>
+
+    <div class="plans">
+      <div class="plan">
+        <div class="name">Starter</div>
+        <div class="for">Asistente interno para que los empleados consulten manuales y políticas.</div>
+        <div class="price"><span class="amount">USD 250</span></div>
+        <div class="range">Rango de referencia: USD 150 – 300</div>
+        <ul>
+          <li>API + interfaz web básica</li>
+          <li>Base de conocimiento (PDFs / documentos)</li>
+          <li>Búsqueda híbrida y citación de fuentes</li>
+          <li>Memoria conversacional</li>
+          <li>Feedback 👍 / 👎</li>
+        </ul>
+      </div>
+
+      <div class="plan featured">
+        <span class="tag">Recomendado</span>
+        <div class="name">Web Widget</div>
+        <div class="for">Burbuja de chat incrustable en Shopify, Tiendanube o WordPress.</div>
+        <div class="price"><span class="amount">USD 450</span><span class="rec">+ USD 50/mes</span></div>
+        <div class="range">Rango de referencia: USD 300 – 600 (+ USD 50/mes)</div>
+        <ul>
+          <li>Todo lo de Starter</li>
+          <li>Widget de chat incrustable</li>
+          <li>Datos vivos: Google Sheets / API de productos</li>
+          <li>Consulta de estado de pedido</li>
+          <li>Personalización de marca</li>
+          <li>Panel de métricas básico</li>
+        </ul>
+      </div>
+
+      <div class="plan">
+        <div class="name">WhatsApp Business</div>
+        <div class="for">Automatización de la atención en el canal principal del comercio.</div>
+        <div class="price"><span class="amount">USD 750</span><span class="rec">+ USD 100/mes</span></div>
+        <div class="range">Rango de referencia: USD 500 – 1.000 (+ USD 100/mes)</div>
+        <ul>
+          <li>Todo lo de Web Widget</li>
+          <li>Conexión a WhatsApp Business API</li>
+          <li>Memoria por cliente</li>
+          <li>Recuperación de carritos abandonados</li>
+          <li>Derivación de leads a ventas</li>
+          <li>Panel de conversión y seguimiento</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== COMPARATIVA ===================== -->
+<section id="comparativa" style="padding-top:8px">
+  <div class="wrap">
+    <h2 class="section-title">Comparativa de funcionalidades</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Funcionalidad</th>
+            <th class="num">Starter</th>
+            <th class="num">Web Widget</th>
+            <th class="num">WhatsApp</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Base de conocimiento (PDFs / documentos)</td><td class="num"><span class="pill ok">Sí</span></td><td class="num"><span class="pill ok">Sí</span></td><td class="num"><span class="pill ok">Sí</span></td></tr>
+          <tr><td>Búsqueda híbrida + citación de fuentes</td><td class="num"><span class="pill ok">Sí</span></td><td class="num"><span class="pill ok">Sí</span></td><td class="num"><span class="pill ok">Sí</span></td></tr>
+          <tr><td>Memoria conversacional</td><td class="num"><span class="pill ok">Sí</span></td><td class="num"><span class="pill ok">Sí</span></td><td class="num"><span class="pill ok">Sí</span></td></tr>
+          <tr><td>Interfaz web / widget incrustable</td><td class="num"><span class="pill">Parcial</span></td><td class="num"><span class="pill ok">Sí</span></td><td class="num"><span class="pill ok">Sí</span></td></tr>
+          <tr><td>Datos vivos (Google Sheets / API de productos)</td><td class="num">—</td><td class="num"><span class="pill ok">Sí</span></td><td class="num"><span class="pill ok">Sí</span></td></tr>
+          <tr><td>Tools a Tiendanube / Shopify / WooCommerce</td><td class="num">—</td><td class="num"><span class="pill">Consulta</span></td><td class="num"><span class="pill ok">Acciones</span></td></tr>
+          <tr><td>Canal WhatsApp Business</td><td class="num">—</td><td class="num">—</td><td class="num"><span class="pill ok">Sí</span></td></tr>
+          <tr><td>Recuperación de carritos abandonados</td><td class="num">—</td><td class="num">—</td><td class="num"><span class="pill ok">Sí</span></td></tr>
+          <tr><td>Derivación de leads a ventas</td><td class="num">—</td><td class="num">—</td><td class="num"><span class="pill ok">Sí</span></td></tr>
+          <tr><td>Panel de métricas y conversión</td><td class="num"><span class="pill">Básico</span></td><td class="num"><span class="pill">Básico</span></td><td class="num"><span class="pill ok">Completo</span></td></tr>
+          <tr><td><b>Precio de lista</b></td><td class="num"><b>USD 250</b></td><td class="num"><b>USD 450 + 50/mes</b></td><td class="num"><b>USD 750 + 100/mes</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== COSTOS ===================== -->
+<section id="costos" class="page-break">
+  <div class="wrap">
+    <h2 class="section-title">Sustento técnico y de costos</h2>
+    <p class="section-sub">
+      Anexo interno para validar que cada precio cubre el costo de implementación,
+      la operación mensual y un margen razonable. Cifras estimadas; se ajustan por cliente.
+    </p>
+
+    <h3 style="margin:6px 0 12px;font-weight:700">Esfuerzo de implementación (una vez)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Plan</th><th class="num">Horas estimadas</th><th class="num">Perfil / tarifa</th><th class="num">Costo de desarrollo</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Starter</td><td class="num">8 – 15 h</td><td class="num">USD 20 – 30 /h</td><td class="num">USD 160 – 450</td></tr>
+          <tr><td>Web Widget</td><td class="num">20 – 35 h</td><td class="num">USD 25 /h</td><td class="num">USD 500 – 875</td></tr>
+          <tr><td>WhatsApp Business</td><td class="num">35 – 55 h</td><td class="num">USD 25 /h</td><td class="num">USD 875 – 1.375</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin:22px 0 12px;font-weight:700">Costo operativo mensual (COGS por cliente)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Plan</th><th class="num">LLM</th><th class="num">Infraestructura</th><th class="num">WhatsApp</th><th class="num">Monitoreo</th><th class="num">COGS / mes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Starter</td><td class="num">2 – 5</td><td class="num">5 – 10</td><td class="num">—</td><td class="num">0 – 2</td><td class="num"><b>~10 – 15</b></td></tr>
+          <tr><td>Web Widget</td><td class="num">5 – 10</td><td class="num">10 – 20</td><td class="num">—</td><td class="num">0 – 3</td><td class="num"><b>~15 – 30</b></td></tr>
+          <tr><td>WhatsApp Business</td><td class="num">8 – 15</td><td class="num">15 – 30</td><td class="num">10 – 30</td><td class="num">0 – 5</td><td class="num"><b>~30 – 60</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid cols-3" style="margin-top:22px">
+      <div class="card">
+        <h3>📈 Margen recurrente</h3>
+        <p>Con cuotas de USD 50 y USD 100/mes y un COGS de ~USD 20–40, el margen bruto ronda el <b>60–65%</b> antes de soporte y mejoras.</p>
+      </div>
+      <div class="card">
+        <h3>🎯 Punto de equilibrio</h3>
+        <p>El precio único cubre el desarrollo/integración; la cuota mensual queda positiva desde el primer mes y sostiene operación, soporte y actualizaciones.</p>
+      </div>
+      <div class="card">
+        <h3>💰 ROI del cliente</h3>
+        <p>Si el ticket promedio es USD 50 y se recuperan 10 carritos/mes, el impacto es <b>~USD 500/mes</b>: muy por encima de la cuota.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ADD-ONS ===================== -->
+<section id="addons" style="padding-top:8px">
+  <div class="wrap">
+    <h2 class="section-title">Opciones y adicionales</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Adicional</th><th>Descripción</th><th class="num">Precio</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Integración adicional</td><td>Tiendanube, Shopify o WooCommerce extra (más allá de la del plan).</td><td class="num">USD 150 – 300 (una vez)</td></tr>
+          <tr><td>Google Sheets / BD de productos</td><td>Conexión viva de precios y stock con actualización automática.</td><td class="num">USD 150 – 250 + USD 20/mes</td></tr>
+          <tr><td>Memoria multimarca</td><td>Varias marcas/tiendas con bases de conocimiento y memoria separadas.</td><td class="num">USD 100 – 200 (una vez)</td></tr>
+          <tr><td>SLA 24/7</td><td>Soporte prioritario y monitoreo continuo con tiempo de respuesta pactado.</td><td class="num">USD 100 – 200/mes</td></tr>
+          <tr><td>Capacitación y handoff</td><td>Entrenamiento al equipo y documentación técnica y de uso.</td><td class="num">USD 150 – 300 (una vez)</td></tr>
+          <tr><td>Campañas de recuperación</td><td>Plantillas y automatización de mensajes de carrito abandonado.</td><td class="num">USD 200 – 400 (una vez)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CONDICIONES ===================== -->
+<section id="condiciones" class="page-break">
+  <div class="wrap">
+    <h2 class="section-title">Condiciones comerciales</h2>
+    <div class="grid cols-2">
+      <div class="card">
+        <h3>Forma de pago</h3>
+        <p>Anticipo del <b>50%</b> al aprobar la propuesta y saldo contra entrega. La cuota mensual se abona por adelantado cada mes.</p>
+      </div>
+      <div class="card">
+        <h3>Tiempos de entrega</h3>
+        <p>Starter: <b>1 – 2 semanas</b> · Web Widget: <b>2 – 4 semanas</b> · WhatsApp Business: <b>4 – 6 semanas</b>.</p>
+      </div>
+      <div class="card">
+        <h3>Soporte</h3>
+        <p>Incluye <b>30 días</b> de soporte posterior a la entrega. Después, se contrata un plan mensual o por demanda.</p>
+      </div>
+      <div class="card">
+        <h3>Alcance y confidencialidad</h3>
+        <p>El cliente entrega credenciales/permisos necesarios y la información de su negocio se trata como confidencial. El código del producto es reutilizable.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CTA ===================== -->
+<section id="cta" style="padding-top:8px">
+  <div class="wrap">
+    <div class="cta no-print">
+      <h2>¿Empezamos?</h2>
+      <p>Aprobamos este presupuesto, definimos el plan y en unas semanas el agente ya está atendiendo a tus clientes.</p>
+      <a class="btn" href="#planes">Elegir un plan</a>
+      <a class="btn ghost" href="presentacion.html">Ver presentación</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    BimBam Buy AI Agent · Propuesta comercial genérica v1.0
+    <div class="placeholders">
+      Placeholders a personalizar: [Nombre del cliente / comercio] · [URL de la tienda] · [Fecha] · [Datos de contacto] · [Logo].
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

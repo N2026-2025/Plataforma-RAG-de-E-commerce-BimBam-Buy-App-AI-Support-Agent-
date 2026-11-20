@@ -1,0 +1,447 @@
+# BimBam Buy (Agente RAG con Soporte IA)
+
+Multiplataforma E-commerce con enfoque en la experiencia de compra digital ágil y segura. Se destaca por un modelo de negocio orientado al cliente, con políticas robustas de reembolso, un programa de afiliados dinámico y una infraestructura logística optimizada para garantizar entregas rápidas y soporte constante al usuário final.
+
+# 🤖 BimBam Buy AI Support Agent
+
+Agente RAG (Retrieval-Augmented Generation) inteligente:
+
+El asistente responde preguntas de soporte al cliente utilizando la
+documentación oficial de la empresa (base de conocimiento en PDF) y
+Retrieval-Augmented Generation para recuperar la información relevante antes
+de generar una respuesta con un modelo de lenguaje.
+
+---
+
+- 📑 Índice
+- [Sobre el proyecto](#-sobre-el-proyecto)
+- [Objetivos del challenge](#-objetivos-del-challenge)
+- [Arquitectura](#-arquitectura)
+- [Tecnologías](#-tecnologías)
+- [Funcionalidades](#-funcionalidades)
+- [Base de conocimiento](#-base-de-conocimiento)
+- [Instrucciones para ejecutar el proyecto](#-instrucciones-para-ejecutar-el-proyecto)
+- [Ejemplos de preguntas](#-ejemplos-de-preguntas)
+- [Ejemplos de respuestas](#-ejemplos-de-respuestas)
+- [Deploy en Oracle Cloud Infrastructure](#️-deploy-en-oracle-cloud-infrastructure-oci)
+- [Estructura del repositorio](#-estructura-del-repositorio)
+- [Mejoras futuras](#-mejoras-futuras)
+- [Proyecto
+  ](#-challenge-alura--one)
+
+---
+
+## 📌 Sobre el proyecto
+
+El objetivo es construir un agente inteligente capaz de leer documentos de negocio (PDF), indexar su contenido
+y responder preguntas de soporte con información precisa y trazable (citando la fuente exacta).
+
+**BimBam Buy** es una tienda de e-commerce ficticia que opera en LATAM. Su
+equipo de soporte necesita responder preguntas frecuentes sobre envíos,
+pagos, garantías, devoluciones y el programa de afiliados de forma rápida y
+consistente. Este agente resuelve ese problema.
+
+## 🎯 Objetivos del challenge
+
+- ✔ Leer documentos de negocio (PDF)
+- ✔ Indexar la información
+- ✔ Recuperar contenido relevante (retrieval)
+- ✔ Generar respuestas contextuales con un LLM
+- ✔ Desplegar la aplicación en Oracle Cloud Infrastructure (OCI)
+- ✔ Publicar el proyecto completo en GitHub
+
+## 🏗️ Arquitectura
+
+El diagrama completo está disponible en [`architecture.mmd`](./architecture.mmd)
+(Mermaid). Vista resumida:
+
+```mermaid
+flowchart LR
+    PDFs["📚 PDFs de BimBam Buy<br/>(envíos, pagos, garantía,<br/>devoluciones, afiliados)"] --> Loader["Document Loader<br/>(PyPDFLoader)"]
+    Loader --> Splitter["Text Splitter"]
+    Splitter --> Embeddings["Embeddings"]
+    Embeddings --> VectorDB[("ChromaDB<br/>(vector store)")]
+
+    User(["🧑 Usuario"]) -->|Pregunta| Interfaces["FastAPI / Streamlit / CLI"]
+    Interfaces --> Chain["RetrievalQA Chain<br/>(LangChain)"]
+    Chain -->|similarity search| VectorDB
+    VectorDB -->|chunks relevantes| Chain
+    Chain --> LLM["LLM<br/>(ChatGPT / Gemini-Gemma / Cohere)"]
+    LLM -->|Respuesta + fuentes| Chain
+    Chain -->|Respuesta final| Interfaces
+    Interfaces -->|Respuesta| User
+```
+
+El flujo completo:
+
+1. Los PDFs de la carpeta `data/` se cargan con `PyPDFLoader`.
+2. El texto se divide en chunks (`RecursiveCharacterTextSplitter`) con
+   superposición para no perder contexto entre fragmentos.
+3. Cada chunk se convierte en un embedding y se guarda en **ChromaDB**,
+   persistido en disco para no reconstruir el índice en cada ejecución.
+4. Ante una pregunta, el **retriever** busca los `k` chunks más similares.
+5. Esos chunks se inyectan como contexto en el prompt del **LLM**, que
+   genera la respuesta final citando el/los documento(s) fuente.
+6. La respuesta se expone vía **FastAPI** (`/ask`), una **UI en Streamlit**
+   o un **CLI** de terminal.
+
+## 🛠️ Tecnologías
+
+- **Python** — lenguaje principal del proyecto
+- **LangChain** — orquestación del agente RAG
+- **PyPDF** (`PyPDFLoader`) — lectura y procesamiento de los PDF
+- **ChromaDB** — base de datos vectorial
+- **LLM configurable** — ChatGPT (OpenAI), Gemini/Gemma (Google) o Cohere
+- **FastAPI** — API REST (`POST /ask`)
+- **Streamlit** — interfaz de chat web
+- **Docker / Docker Compose** — contenerización y orquestación local
+- **Oracle Cloud Infrastructure (OCI)** — despliegue en la nube
+
+> El stack sigue las sugerencias del challenge, pero es intercambiable: el
+> proveedor de LLM y de embeddings se elige por variable de entorno
+> (`LLM_PROVIDER` / `EMBEDDINGS_PROVIDER`) sin tocar el código.
+
+## ✨ Funcionalidades
+
+- Ingesta de documentos PDF
+- Generación automática de chunks
+- Generación de embeddings
+- Búsqueda semántica (similarity search)
+- Retrieval-Augmented Generation (RAG)
+- Citación de la fuente usada para cada respuesta
+- Interfaz de conversación (API, chat web y CLI)
+- Listo para desplegar en OCI con Docker
+
+## 📚 Base de conocimiento
+
+El agente responde preguntas usando los siguientes documentos oficiales de
+BimBam Buy, ubicados en `data/`:
+
+| Archivo                                  | Contenido                                   |
+| ---------------------------------------- | ------------------------------------------- |
+| `politica_reembolsos_devoluciones.pdf` | Política de Reembolsos y Devoluciones      |
+| `faq_metodos_pago.pdf`                 | Preguntas Frecuentes sobre Métodos de Pago |
+| `manual_garantia_productos.pdf`        | Manual de Garantía de Productos            |
+| `guia_tiempos_costos_envio.pdf`        | Guía de Tiempos y Costos de Envío         |
+| `programa_afiliados.pdf`               | Programa de Afiliados                       |
+
+Estos documentos simulan la base de conocimiento interna de un equipo de
+soporte de e-commerce.
+
+## ⚙️ Instrucciones para ejecutar el proyecto
+
+### 1. Cloná el repositorio
+
+```bash
+git clone https://github.com/<tu-usuario>/bimbam-buy-ai-agent.git
+cd bimbam-buy-ai-agent
+```
+
+### 2. Configurá
+
+```bash
+cp .env.example .env
+# Editá .env y completá la API key del proveedor elegido
+# (OPENAI_API_KEY, GOOGLE_API_KEY o COHERE_API_KEY)
+
+## Pasos
+
+Paso 1: Crear la carpeta e inicializar el proyecto
+
+Crea el directorio para tu reto e inicializa un entorno de Python ultra rápido usando `uv`:
+
+bash
+```
+
+mkdir bimbam buy-onnx && cd bimbam buy-onnx
+uv init --no-workspace
+
+```
+
+Usa el código con precaución.
+
+Paso 2: Instalar las dependencias ligeras
+
+Instala los paquetes necesarios para ejecutar ONNX, manejar los vectores con NumPy y conectarte a la API de Google:
+
+bash
+
+```
+
+uv add onnxruntime tokenizers numpy google-genai
+uv add --dev huggingface-hub
+
+```
+
+Usa el código con precaución.
+
+Paso 3: Crear el script de descarga y bajar el modelo
+
+Crea el archivo para descargar el modelo ONNX desde Hugging Face:
+
+bash
+
+```
+
+cat << 'EOF' > download.py
+import os
+from huggingface_hub import hf_hub_download
+
+MODEL_ID = "Xenova/all-MiniLM-L6-v2"
+FILES = ["model.onnx", "tokenizer.json", "tokenizer_config.json", "special_tokens_map.json"]
+
+print(f"Descargando componentes de {MODEL_ID}...")
+for file in FILES:
+    dest_path = os.path.join("models", MODEL_ID)
+    os.makedirs(dest_path, exist_ok=True)
+    hf_hub_download(repo_id=MODEL_ID, filename=file, local_dir=dest_path, local_dir_use_symlinks=False)
+print("¡Descarga completada con éxito en /models!")
+EOF
+
+```
+
+Usa el código con precaución.
+
+Ahora ejecuta la descarga (esto solo se hace una vez):
+
+bash
+```
+
+uv run python download.py
+
+```
+
+Usa el código con precaución.
+
+Paso 4: Crear la clase del Embedder ONNX
+
+Crea el archivo que procesará los textos y los convertirá en vectores usando únicamente la CPU:
+
+bash
+```
+
+cat << 'EOF' > embedder.py
+import os
+import numpy as np
+import onnxruntime as ort
+from tokenizers import Tokenizer
+
+class Embedder:
+    def __init__(self, model_dir="models/Xenova/all-MiniLM-L6-v2"):
+        self.tokenizer = Tokenizer.from_file(os.path.join(model_dir, "tokenizer.json"))
+        self.session = ort.InferenceSession(os.path.join(model_dir, "model.onnx"), providers=["CPUExecutionProvider"])
+
+    def _normalize(self, vectors):
+        norm = np.linalg.norm(vectors, axis=1, keepdims=True)
+        return vectors / np.where(norm == 0, 1e-12, norm)
+
+    def encode_batch(self, texts):
+        encodings = self.tokenizer.encode_batch(texts)
+        input_ids = np.array([e.ids for e in encodings], dtype=np.int64)
+        attention_mask = np.array([e.attention_mask for e in encodings], dtype=np.int64)
+
+        inputs = {"input_ids": input_ids, "attention_mask": attention_mask}
+        model_inputs = [i.name for i in self.session.get_inputs()]
+        if "token_type_ids" in model_inputs:
+            inputs["token_type_ids"] = np.zeros_like(input_ids)
+
+        outputs = self.session.run(None, inputs)[0]
+        input_mask_expanded = np.expand_dims(attention_mask, axis=-1).astype(float)
+        sum_embeddings = np.sum(outputs * input_mask_expanded, axis=1)
+        sum_mask = np.clip(np.sum(input_mask_expanded, axis=1), a_min=1e-9, a_max=None)
+
+        return self._normalize(sum_embeddings / sum_mask)
+
+    def encode(self, text):
+        return self.encode_batch([text])[0]
+EOF
+
+```
+
+Usa el código con precaución.
+
+Paso 5: Crear el script del flujo RAG
+
+Crea el script de prueba que unirá tu base de datos vectorial local con Gemini:
+
+bash
+```
+
+cat << 'EOF' > test_rag.py
+import os
+import numpy as np
+from google import genai
+from embedder import Embedder
+
+def main():
+    if not os.environ.get("GEMINI_API_KEY"):
+        print("❌ Error: La variable de entorno GEMINI_API_KEY no está configurada.")
+        return
+
+    print("🤖 Inicializando cliente de Google GenAI y Embedder ONNX...")
+    ai_client = genai.Client()
+    embedder = Embedder()
+
+    documents = [
+        {"id": 1, "text": "Para el LLM Zoomcamp Challenge, la fecha límite de entrega es el próximo domingo a la medianoche. No se aceptan entregas tardías."},
+        {"id": 2, "text": "Para instalar Docker en Windows, descarga Docker Desktop desde el sitio oficial y asegúrate de tener habilitado WSL2 en las características de Windows."},
+        {"id": 3, "text": "La capa gratuita de Oracle Cloud (Always Free) te permite crear hasta dos bases de datos autónomas y usar instancias de cómputo Ampere ARM sin costo."}
+    ]
+
+    print("📦 Indexando documentos localmente con ONNX...")
+    texts_to_embed = [doc["text"] for doc in documents]
+    doc_vectors = embedder.encode_batch(texts_to_embed)
+
+    query = "¿Cuándo tengo que entregar el desafío del Zoomcamp?"
+    print(f"\n❓ Consulta del usuario: '{query}'")
+    query_vector = embedder.encode(query)
+
+    scores = np.dot(doc_vectors, query_vector)
+    best_idx = np.argmax(scores)
+    context = documents[best_idx]["text"]
+
+    print(f"🎯 Documento más relevante encontrado (Score: {scores[best_idx]:.4f}):\n   '{context}'")
+    print("\n🚀 Enviando contexto y pregunta a Gemini...")
+
+    prompt = f"Responde la pregunta del usuario utilizando únicamente el contexto provisto.\n\nContexto:\n{context}\n\nPregunta:\n{query}\n\nRespuesta:"
+
+    response = ai_client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+    print(f"\n✨ Respuesta final de Gemini:\n{'-'*50}\n{response.text}\n{'-'*50}")
+
+if __name__ == "__main__":
+    main()
+EOF
+
+```
+
+Usa el código con precaución.
+
+Paso 6: Configurar tu API Key y ejecutar
+
+Reemplaza `"TU_API_KEY_AQUI"` con tu clave real de Google AI Studio y ejecuta el pipeline completo:
+
+bash
+```
+
+export GEMINI_API_KEY="TU_API_KEY_AQUI"
+uv run python test_rag.py
+
+```
+
+Usa el código con precaución.
+```
+
+### 3a. Ejecución local (sin Docker)
+
+```bash
+## Quick Steps
+
+# 1. Entrás a la carpeta del agente
+cd bimbam-buy-ai-agent
+
+# 2. Activás el entorno virtual (que está un nivel arriba)
+source ../.venv/Scripts/activate
+
+# 3. Lanzás la interfaz gráfica de Streamlit
+../.venv/Scripts/python -m streamlit run streamlit_app.py
+
+if gives error try this:
+rm -rf rag/__pycache__ __pycache__
+
+#Alternative way
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+
+pip install -r requirements.txt
+
+# Construye el índice vectorial a partir de los PDF en data/
+python rag_engine.py
+
+# Levantar la API
+uvicorn app:app --reload --port 8000
+
+# (opcional, en otra terminal) Levantar la UI de chat
+streamlit run streamlit_app.py
+
+# (opcional) Probar por consola
+python cli.py
+```
+
+La API queda disponible en `http://localhost:8000` con documentación
+interactiva en `http://localhost:8000/docs`.
+
+### 3b. Ejecución con Docker Compose
+
+```bash
+docker compose up --build
+```
+
+- API: `http://localhost:8000`
+- UI (Streamlit): `http://localhost:8501`
+
+### 4. Probar el endpoint
+
+```bash
+curl -X POST http://localhost:8000/ask \
+  -H "Content-Type: application/json" \
+  -d '{"question": "¿Cuánto tarda un reembolso?"}'
+```
+
+## ❓ Ejemplos de preguntas
+
+- ¿Cuánto tarda en procesarse un reembolso?
+- ¿Puedo devolver un producto después de 10 días?
+- ¿Qué métodos de pago aceptan?
+- ¿Qué cubre la garantía de los productos?
+- Mi pedido está demorado, ¿qué hago?
+- ¿Puedo cancelar un pedido después de haber pagado?
+- ¿Cómo se calcula la comisión de un afiliado si hay una devolución?
+
+## 💬 Ejemplos de respuestas
+
+Ver el detalle completo, con las fuentes citadas por el agente, en
+[`examples/sample_qa.md`](./examples/sample_qa.md).
+
+## ☁️ Deploy en Oracle Cloud Infrastructure (OCI)
+
+La aplicación fue empaquetada con Docker (`Dockerfile` /
+`docker-compose.yml`) para poder desplegarse en una instancia de **OCI
+Compute**.
+
+- **URL pública:** `<completar con la URL de la instancia de OCI>`
+- **Captura de la aplicación en ejecución:** `<agregar screenshot en /docs o /examples>`
+- **Información de la VM de OCI:** `<forma/shape, región y sistema operativo utilizados>`
+
+> Reemplazar esta sección con la evidencia real una vez completado el
+> despliegue (enlace público y/o captura de pantalla).
+
+## 🗂️ Estructura del repositorio
+
+```text
+bimbam-buy-ai-agent/
+├── app.py                  # API FastAPI (POST /ask, health checks)
+├── rag_engine.py            # Carga de PDFs, chunking, embeddings, cadena RAG
+├── cli.py                   # Chat de terminal para pruebas rápidas
+├── streamlit_app.py         # UI de chat en Streamlit
+├── data/                    # Base de conocimiento (PDFs de BimBam Buy)
+├── examples/
+│   └── sample_qa.md         # Ejemplos de preguntas y respuestas del agente
+├── architecture.mmd         # Diagrama de arquitectura (Mermaid)
+├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
+├── .env.example
+└── README.md
+```
+
+## 🚀 Mejoras futuras
+
+- Recuperación multi-documento con re-ranking
+- Memoria conversacional (multi-turno)
+- Búsqueda híbrida (keyword + semántica)
+- Soporte OCR para documentos escaneados
+- Pipeline de evaluación de calidad de respuestas
+- Monitoreo y observabilidad (logs, métricas, trazas)
+- Interfaz de voz
+
+---
