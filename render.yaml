@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: bimbam-buy-app
+    env: docker
+    rootDir: .
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHONPATH
+        value: /app/bimbam-buy-ai-agent
+      - key: ENABLE_RERANKER
+        value: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: COHERE_API_KEY
+        sync: false
