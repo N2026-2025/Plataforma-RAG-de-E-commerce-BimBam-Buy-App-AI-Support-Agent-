@@ -1,121 +1,189 @@
-# BimBam Buy (Agente RAG con Soporte IA)
+# 🤖 BimBam Buy — AI Support Agent (Agente RAG con Soporte IA)
 
-Multiplataforma E-commerce con enfoque en la experiencia de compra digital ágil y segura. Se destaca por un modelo de negocio orientado al cliente, con políticas robustas de reembolso, un programa de afiliados dinámico y una infraestructura logística optimizada para garantizar entregas rápidas y soporte constante al usuário final.
-
-# 🤖 BimBam Buy AI Support Agent
-
-Agente RAG (Retrieval-Augmented Generation) inteligente:
+> 🚀 **Aplicación en Producción (Live Web App):** [BimBam Buy · Asistente IA de Soporte](https://bimbam-buy-app.onrender.com/)  
+> 📖 **Documentación Interactiva Swagger / OpenAPI:** [https://bimbam-buy-app.onrender.com/docs](https://bimbam-buy-app.onrender.com/docs)  
+> 🎯 **Kit de Ventas (propuesta + presentación + PDF):** [BimBam Buy AI Agent · Propuesta Comercial](https://n2026-2025.github.io/Plataforma-RAG-de-E-commerce-BimBam-Buy-App-AI-Support-Agent-/) · [README del kit](./ventas/README.md)
 
 El asistente responde preguntas de soporte al cliente utilizando la
 documentación oficial de la empresa (base de conocimiento en PDF) y
 Retrieval-Augmented Generation para recuperar la información relevante antes
 de generar una respuesta con un modelo de lenguaje.
 
+Agente RAG (Retrieval-Augmented Generation) **avanzado**,
+Responde preguntas de soporte al cliente usando la documentación oficial de
+la empresa (PDFs, con soporte OCR para escaneados), combinando **búsqueda
+híbrida** (keywords + semántica) con **reranking**, **memoria conversacional
+multi-turno**, una **interfaz de voz**, un **pipeline de evaluación** y un
+**stack de monitoreo/observabilidad** completo — siguiendo los patrones
+enseñados en [DataTalksClub/llm-zoomcamp](https://github.com/DataTalksClub/llm-zoomcamp).
+
 ---
 
-- 📑 Índice
+## 📑 Índice
+
 - [Sobre el proyecto](#-sobre-el-proyecto)
 - [Objetivos del challenge](#-objetivos-del-challenge)
 - [Arquitectura](#-arquitectura)
+- [Capacidades avanzadas](#-capacidades-avanzadas)
 - [Tecnologías](#-tecnologías)
-- [Funcionalidades](#-funcionalidades)
 - [Base de conocimiento](#-base-de-conocimiento)
 - [Instrucciones para ejecutar el proyecto](#-instrucciones-para-ejecutar-el-proyecto)
+- [Deploy en Producción (Render)](#-deploy-en-producción-render)
+- [Evaluación](#-evaluación)
+- [Monitoreo y observabilidad](#-monitoreo-y-observabilidad)
+- [Interfaz de voz](#-interfaz-de-voz)
 - [Ejemplos de preguntas](#-ejemplos-de-preguntas)
 - [Ejemplos de respuestas](#-ejemplos-de-respuestas)
 - [Deploy en Oracle Cloud Infrastructure](#️-deploy-en-oracle-cloud-infrastructure-oci)
 - [Estructura del repositorio](#-estructura-del-repositorio)
 - [Mejoras futuras](#-mejoras-futuras)
-- [Proyecto
-  ](#-challenge-alura--one)
+- [Challenge Alura + ONE](#-challenge-alura--one)
 
 ---
 
 ## 📌 Sobre el proyecto
 
-El objetivo es construir un agente inteligente capaz de leer documentos de negocio (PDF), indexar su contenido
-y responder preguntas de soporte con información precisa y trazable (citando la fuente exacta).
-
 **BimBam Buy** es una tienda de e-commerce ficticia que opera en LATAM. Su
 equipo de soporte necesita responder preguntas frecuentes sobre envíos,
-pagos, garantías, devoluciones y el programa de afiliados de forma rápida y
-consistente. Este agente resuelve ese problema.
+pagos, garantías, devoluciones y el programa de afiliados de forma rápida,
+consistente y trazable. Este agente resuelve ese problema con un pipeline
+RAG de nivel productivo, no solo un demo de "pregunta-respuesta".
 
 ## 🎯 Objetivos del challenge
 
-- ✔ Leer documentos de negocio (PDF)
-- ✔ Indexar la información
-- ✔ Recuperar contenido relevante (retrieval)
-- ✔ Generar respuestas contextuales con un LLM
+- ✔ Leer documentos de negocio (PDF, incluyendo escaneados vía OCR)
+- ✔ Indexar la información (vectorial + keywords)
+- ✔ Recuperar contenido relevante con alta precisión (hybrid search + rerank)
+- ✔ Generar respuestas contextuales y conversacionales con un LLM
+- ✔ Evaluar la calidad del sistema de forma objetiva y reproducible
+- ✔ Monitorear el sistema en producción
 - ✔ Desplegar la aplicación en Oracle Cloud Infrastructure (OCI)
 - ✔ Publicar el proyecto completo en GitHub
 
 ## 🏗️ Arquitectura
 
-El diagrama completo está disponible en [`architecture.mmd`](./architecture.mmd)
-(Mermaid). Vista resumida:
+Diagrama completo en [`architecture.mmd`](./architecture.mmd) (Mermaid).
+[`architecture.mmd`](./architecture.mmd)
+Vista resumida del flujo por pregunta:
 
 ```mermaid
 flowchart LR
-    PDFs["📚 PDFs de BimBam Buy<br/>(envíos, pagos, garantía,<br/>devoluciones, afiliados)"] --> Loader["Document Loader<br/>(PyPDFLoader)"]
-    Loader --> Splitter["Text Splitter"]
-    Splitter --> Embeddings["Embeddings"]
-    Embeddings --> VectorDB[("ChromaDB<br/>(vector store)")]
-
-    User(["🧑 Usuario"]) -->|Pregunta| Interfaces["FastAPI / Streamlit / CLI"]
-    Interfaces --> Chain["RetrievalQA Chain<br/>(LangChain)"]
-    Chain -->|similarity search| VectorDB
-    VectorDB -->|chunks relevantes| Chain
-    Chain --> LLM["LLM<br/>(ChatGPT / Gemini-Gemma / Cohere)"]
-    LLM -->|Respuesta + fuentes| Chain
-    Chain -->|Respuesta final| Interfaces
-    Interfaces -->|Respuesta| User
+    User(["🧑 Usuario"]) -->|texto o audio| Interfaces["FastAPI / Streamlit / CLI"]
+    Interfaces --> Ctx["Contextualización<br/>(memoria multi-turno)"]
+    Ctx --> Hybrid["Hybrid Search<br/>(BM25 + vectorial, fusión RRF)"]
+    Hybrid --> Rerank["Cross-Encoder Reranking"]
+    Rerank --> LLM["LLM<br/>(ChatGPT / Gemini-Gemma / Cohere)"]
+    LLM -->|respuesta + fuentes| Interfaces
+    Interfaces --> Log["Logging<br/>(Postgres/SQLite + Prometheus)"]
 ```
 
-El flujo completo:
+## ✨ Capacidades avanzadas
 
-1. Los PDFs de la carpeta `data/` se cargan con `PyPDFLoader`.
-2. El texto se divide en chunks (`RecursiveCharacterTextSplitter`) con
-   superposición para no perder contexto entre fragmentos.
-3. Cada chunk se convierte en un embedding y se guarda en **ChromaDB**,
-   persistido en disco para no reconstruir el índice en cada ejecución.
-4. Ante una pregunta, el **retriever** busca los `k` chunks más similares.
-5. Esos chunks se inyectan como contexto en el prompt del **LLM**, que
-   genera la respuesta final citando el/los documento(s) fuente.
-6. La respuesta se expone vía **FastAPI** (`/ask`), una **UI en Streamlit**
-   o un **CLI** de terminal.
+Esta versión extiende el MVP inicial con 7 capacidades adicionales de nivel
+"AI engineer", cada una siguiendo un módulo específico de llm-zoomcamp:
+
+### 1. Recuperación multi-documento con re-ranking
+
+`rag/hybrid_search.py` + `rag/reranker.py`
+
+Pipeline de dos etapas (patrón estándar de la industria):
+
+- **Stage 1 (recall):** búsqueda BM25 (keywords) + búsqueda vectorial
+  (embeddings), fusionadas con **Reciprocal Rank Fusion (RRF)** — evita el
+  problema de mezclar escalas incompatibles (score BM25 vs. similaridad
+  coseno), operando solo sobre las *posiciones* de cada ranking.
+- **Stage 2 (precisión):** un **cross-encoder** multilingüe
+  (`cross-encoder/mmarco-mMiniLMv2-L12-H384-v1`) relee la pregunta y cada
+  candidato juntos, y reordena por relevancia real antes de pasarlos al LLM.
+
+### 2. Memoria conversacional (multi-turno)
+
+`rag/memory.py`
+
+Cada conversación tiene un `session_id`. Ante una pregunta de seguimiento
+("¿y si pagué con transferencia?"), el LLM la reformula como una **pregunta
+independiente** usando el historial reciente, antes de mandarla al
+retriever — si no, el retriever buscaría con muy poca señal semántica.
+
+### 3. Búsqueda híbrida (keyword + semántica)
+
+`rag/hybrid_search.py`
+
+Ver punto 1: BM25 resuelve bien coincidencias exactas (números de orden,
+plazos como "48 horas", nombres de política), mientras que la búsqueda
+vectorial resuelve paráfrasis y preguntas conceptuales. RRF combina lo
+mejor de ambas sin necesidad de calibrar pesos.
+
+### 4. Soporte OCR para documentos escaneados
+
+`rag/loaders.py`
+
+Si una página de un PDF no tiene suficiente texto extraíble (menos de
+`OCR_MIN_CHARS_PER_PAGE`), se renderiza a imagen (`pdf2image`) y se le
+aplica OCR (`pytesseract`, en español) automáticamente, sin intervención
+manual. Útil para comprobantes, boletas o contratos escaneados.
+
+### 5. Pipeline de evaluación de calidad de respuestas
+
+`evaluation/`
+
+Siguiendo llm-zoomcamp 04-evaluation:
+
+- `generate_ground_truth.py`: le pide al LLM que genere preguntas
+  realistas por cada chunk de la base de conocimiento (dataset
+  pregunta → chunk esperado, sin armarlo a mano).
+- `evaluate_retrieval.py`: mide **Hit Rate** y **MRR** comparando 4
+  estrategias (solo vectorial, solo BM25, híbrida, híbrida + reranking).
+- `evaluate_answers.py`: **LLM-as-a-judge** (clasifica cada respuesta como
+  RELEVANT / PARTLY_RELEVANT / NON_RELEVANT) + **cosine similarity** entre
+  pregunta y respuesta como métrica automática complementaria.
+
+### 6. Monitoreo y observabilidad (logs, métricas, trazas)
+
+`monitoring/`
+
+Siguiendo llm-zoomcamp 05-monitoring:
+
+- **Logging estructurado**: cada interacción (pregunta, pregunta
+  reformulada, respuesta, fuentes, tiempos por etapa, feedback del usuario)
+  se guarda en Postgres/SQLite (`monitoring/logging_db.py`).
+- **Métricas Prometheus**: contadores de requests, latencia por etapa del
+  pipeline (contextualización, retrieval, rerank, generación), feedback y
+  errores, expuestos en `GET /metrics` (`monitoring/metrics.py`).
+- **Dashboard Grafana** provisto (`monitoring/grafana/`), combinando
+  métricas en vivo (Prometheus) con datos históricos (Postgres).
+
+### 7. Interfaz de voz
+
+`voice/`
+
+`POST /voice/ask` recibe un audio, lo transcribe (Whisper), lo procesa con
+el mismo pipeline RAG (hybrid search + rerank + memoria) y devuelve tanto
+el texto como el audio de la respuesta sintetizado (TTS), en JSON con el
+audio codificado en base64.
 
 ## 🛠️ Tecnologías
 
-- **Python** — lenguaje principal del proyecto
-- **LangChain** — orquestación del agente RAG
-- **PyPDF** (`PyPDFLoader`) — lectura y procesamiento de los PDF
-- **ChromaDB** — base de datos vectorial
-- **LLM configurable** — ChatGPT (OpenAI), Gemini/Gemma (Google) o Cohere
-- **FastAPI** — API REST (`POST /ask`)
-- **Streamlit** — interfaz de chat web
-- **Docker / Docker Compose** — contenerización y orquestación local
-- **Oracle Cloud Infrastructure (OCI)** — despliegue en la nube
-
-> El stack sigue las sugerencias del challenge, pero es intercambiable: el
-> proveedor de LLM y de embeddings se elige por variable de entorno
-> (`LLM_PROVIDER` / `EMBEDDINGS_PROVIDER`) sin tocar el código.
-
-## ✨ Funcionalidades
-
-- Ingesta de documentos PDF
-- Generación automática de chunks
-- Generación de embeddings
-- Búsqueda semántica (similarity search)
-- Retrieval-Augmented Generation (RAG)
-- Citación de la fuente usada para cada respuesta
-- Interfaz de conversación (API, chat web y CLI)
-- Listo para desplegar en OCI con Docker
+| Categoría               | Tecnología                                                      |
+| ------------------------ | ---------------------------------------------------------------- |
+| Lenguaje                 | Python                                                           |
+| Orquestación RAG        | LangChain                                                        |
+| Lectura de PDF           | PyPDF (`PyPDFLoader`)                                          |
+| OCR                      | Tesseract (`pytesseract` + `pdf2image`)                      |
+| Vector store             | ChromaDB                                                         |
+| Búsqueda por keywords   | BM25 (`rank-bm25`)                                             |
+| Reranking                | Cross-Encoder (`sentence-transformers`)                        |
+| LLM / Embeddings         | ChatGPT (OpenAI), Gemini/Gemma (Google) o Cohere — configurable |
+| Voz                      | Whisper (STT) + TTS de OpenAI                                    |
+| API                      | FastAPI                                                          |
+| UI                       | Streamlit                                                        |
+| Logging de interacciones | SQLAlchemy (SQLite / Postgres)                                   |
+| Métricas                | Prometheus                                                       |
+| Dashboards               | Grafana                                                          |
+| Contenedores             | Docker / Docker Compose                                          |
+| Cloud                    | Oracle Cloud Infrastructure (OCI)                                |
 
 ## 📚 Base de conocimiento
-
-El agente responde preguntas usando los siguientes documentos oficiales de
-BimBam Buy, ubicados en `data/`:
 
 | Archivo                                  | Contenido                                   |
 | ---------------------------------------- | ------------------------------------------- |
@@ -125,323 +193,244 @@ BimBam Buy, ubicados en `data/`:
 | `guia_tiempos_costos_envio.pdf`        | Guía de Tiempos y Costos de Envío         |
 | `programa_afiliados.pdf`               | Programa de Afiliados                       |
 
-Estos documentos simulan la base de conocimiento interna de un equipo de
-soporte de e-commerce.
-
 ## ⚙️ Instrucciones para ejecutar el proyecto
 
-### 1. Cloná el repositorio
+### 1. Cloná el repositorio y configurá el entorno
 
 ```bash
 git clone https://github.com/<tu-usuario>/bimbam-buy-ai-agent.git
 cd bimbam-buy-ai-agent
-```
-
-### 2. Configurá
-
-```bash
 cp .env.example .env
-# Editá .env y completá la API key del proveedor elegido
-# (OPENAI_API_KEY, GOOGLE_API_KEY o COHERE_API_KEY)
-
-## Pasos
-
-Paso 1: Crear la carpeta e inicializar el proyecto
-
-Crea el directorio para tu reto e inicializa un entorno de Python ultra rápido usando `uv`:
-
-bash
+# Completá la API key del proveedor elegido: OPENAI_API_KEY, GOOGLE_API_KEY o COHERE_API_KEY
 ```
 
-mkdir bimbam buy-onnx && cd bimbam buy-onnx
-uv init --no-workspace
-
-```
-
-Usa el código con precaución.
-
-Paso 2: Instalar las dependencias ligeras
-
-Instala los paquetes necesarios para ejecutar ONNX, manejar los vectores con NumPy y conectarte a la API de Google:
-
-bash
-
-```
-
-uv add onnxruntime tokenizers numpy google-genai
-uv add --dev huggingface-hub
-
-```
-
-Usa el código con precaución.
-
-Paso 3: Crear el script de descarga y bajar el modelo
-
-Crea el archivo para descargar el modelo ONNX desde Hugging Face:
-
-bash
-
-```
-
-cat << 'EOF' > download.py
-import os
-from huggingface_hub import hf_hub_download
-
-MODEL_ID = "Xenova/all-MiniLM-L6-v2"
-FILES = ["model.onnx", "tokenizer.json", "tokenizer_config.json", "special_tokens_map.json"]
-
-print(f"Descargando componentes de {MODEL_ID}...")
-for file in FILES:
-    dest_path = os.path.join("models", MODEL_ID)
-    os.makedirs(dest_path, exist_ok=True)
-    hf_hub_download(repo_id=MODEL_ID, filename=file, local_dir=dest_path, local_dir_use_symlinks=False)
-print("¡Descarga completada con éxito en /models!")
-EOF
-
-```
-
-Usa el código con precaución.
-
-Ahora ejecuta la descarga (esto solo se hace una vez):
-
-bash
-```
-
-uv run python download.py
-
-```
-
-Usa el código con precaución.
-
-Paso 4: Crear la clase del Embedder ONNX
-
-Crea el archivo que procesará los textos y los convertirá en vectores usando únicamente la CPU:
-
-bash
-```
-
-cat << 'EOF' > embedder.py
-import os
-import numpy as np
-import onnxruntime as ort
-from tokenizers import Tokenizer
-
-class Embedder:
-    def __init__(self, model_dir="models/Xenova/all-MiniLM-L6-v2"):
-        self.tokenizer = Tokenizer.from_file(os.path.join(model_dir, "tokenizer.json"))
-        self.session = ort.InferenceSession(os.path.join(model_dir, "model.onnx"), providers=["CPUExecutionProvider"])
-
-    def _normalize(self, vectors):
-        norm = np.linalg.norm(vectors, axis=1, keepdims=True)
-        return vectors / np.where(norm == 0, 1e-12, norm)
-
-    def encode_batch(self, texts):
-        encodings = self.tokenizer.encode_batch(texts)
-        input_ids = np.array([e.ids for e in encodings], dtype=np.int64)
-        attention_mask = np.array([e.attention_mask for e in encodings], dtype=np.int64)
-
-        inputs = {"input_ids": input_ids, "attention_mask": attention_mask}
-        model_inputs = [i.name for i in self.session.get_inputs()]
-        if "token_type_ids" in model_inputs:
-            inputs["token_type_ids"] = np.zeros_like(input_ids)
-
-        outputs = self.session.run(None, inputs)[0]
-        input_mask_expanded = np.expand_dims(attention_mask, axis=-1).astype(float)
-        sum_embeddings = np.sum(outputs * input_mask_expanded, axis=1)
-        sum_mask = np.clip(np.sum(input_mask_expanded, axis=1), a_min=1e-9, a_max=None)
-
-        return self._normalize(sum_embeddings / sum_mask)
-
-    def encode(self, text):
-        return self.encode_batch([text])[0]
-EOF
-
-```
-
-Usa el código con precaución.
-
-Paso 5: Crear el script del flujo RAG
-
-Crea el script de prueba que unirá tu base de datos vectorial local con Gemini:
-
-bash
-```
-
-cat << 'EOF' > test_rag.py
-import os
-import numpy as np
-from google import genai
-from embedder import Embedder
-
-def main():
-    if not os.environ.get("GEMINI_API_KEY"):
-        print("❌ Error: La variable de entorno GEMINI_API_KEY no está configurada.")
-        return
-
-    print("🤖 Inicializando cliente de Google GenAI y Embedder ONNX...")
-    ai_client = genai.Client()
-    embedder = Embedder()
-
-    documents = [
-        {"id": 1, "text": "Para el LLM Zoomcamp Challenge, la fecha límite de entrega es el próximo domingo a la medianoche. No se aceptan entregas tardías."},
-        {"id": 2, "text": "Para instalar Docker en Windows, descarga Docker Desktop desde el sitio oficial y asegúrate de tener habilitado WSL2 en las características de Windows."},
-        {"id": 3, "text": "La capa gratuita de Oracle Cloud (Always Free) te permite crear hasta dos bases de datos autónomas y usar instancias de cómputo Ampere ARM sin costo."}
-    ]
-
-    print("📦 Indexando documentos localmente con ONNX...")
-    texts_to_embed = [doc["text"] for doc in documents]
-    doc_vectors = embedder.encode_batch(texts_to_embed)
-
-    query = "¿Cuándo tengo que entregar el desafío del Zoomcamp?"
-    print(f"\n❓ Consulta del usuario: '{query}'")
-    query_vector = embedder.encode(query)
-
-    scores = np.dot(doc_vectors, query_vector)
-    best_idx = np.argmax(scores)
-    context = documents[best_idx]["text"]
-
-    print(f"🎯 Documento más relevante encontrado (Score: {scores[best_idx]:.4f}):\n   '{context}'")
-    print("\n🚀 Enviando contexto y pregunta a Gemini...")
-
-    prompt = f"Responde la pregunta del usuario utilizando únicamente el contexto provisto.\n\nContexto:\n{context}\n\nPregunta:\n{query}\n\nRespuesta:"
-
-    response = ai_client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
-    print(f"\n✨ Respuesta final de Gemini:\n{'-'*50}\n{response.text}\n{'-'*50}")
-
-if __name__ == "__main__":
-    main()
-EOF
-
-```
-
-Usa el código con precaución.
-
-Paso 6: Configurar tu API Key y ejecutar
-
-Reemplaza `"TU_API_KEY_AQUI"` con tu clave real de Google AI Studio y ejecuta el pipeline completo:
-
-bash
-```
-
-export GEMINI_API_KEY="TU_API_KEY_AQUI"
-uv run python test_rag.py
-
-```
-
-Usa el código con precaución.
-```
-
-### 3a. Ejecución local (sin Docker)
+### 2a. Ejecución local (sin Docker)
 
 ```bash
-## Quick Steps
-
-# 1. Entrás a la carpeta del agente
-cd bimbam-buy-ai-agent
-
-# 2. Activás el entorno virtual (que está un nivel arriba)
-source ../.venv/Scripts/activate
-
-# 3. Lanzás la interfaz gráfica de Streamlit
-../.venv/Scripts/python -m streamlit run streamlit_app.py
-
-if gives error try this:
-rm -rf rag/__pycache__ __pycache__
-
-#Alternative way
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
-
 pip install -r requirements.txt
 
-# Construye el índice vectorial a partir de los PDF en data/
+# Además de las dependencias de Python, instalar en el sistema:
+#   Ubuntu/Debian: sudo apt install tesseract-ocr tesseract-ocr-spa poppler-utils
+#   macOS:         brew install tesseract tesseract-lang poppler
+
+# Construye el índice (vector store + BM25) a partir de los PDFs en data/
 python rag_engine.py
 
 # Levantar la API
 uvicorn app:app --reload --port 8000
 
-# (opcional, en otra terminal) Levantar la UI de chat
+# (opcional) UI de chat
 streamlit run streamlit_app.py
 
-# (opcional) Probar por consola
+# (opcional) chat por consola, con memoria multi-turno
 python cli.py
 ```
 
-La API queda disponible en `http://localhost:8000` con documentación
-interactiva en `http://localhost:8000/docs`.
+API disponible en `http://localhost:8000` (docs interactivas en `/docs`).
 
-### 3b. Ejecución con Docker Compose
+### 2b. Ejecución con Docker Compose
 
 ```bash
+# Solo la app (API + UI)
 docker compose up --build
+
+# App + stack completo de monitoreo (Postgres + Prometheus + Grafana)
+docker compose -f docker-compose.yml -f docker-compose.monitoring.yml up --build
 ```
 
 - API: `http://localhost:8000`
 - UI (Streamlit): `http://localhost:8501`
+- Grafana: `http://localhost:3000` (usuario/clave: `admin` / `admin`)
+- Prometheus: `http://localhost:9090`
 
-### 4. Probar el endpoint
+### 3. Probar la API
 
 ```bash
+# Pregunta simple
 curl -X POST http://localhost:8000/ask \
   -H "Content-Type: application/json" \
   -d '{"question": "¿Cuánto tarda un reembolso?"}'
+
+# Pregunta de seguimiento (multi-turno, mismo session_id devuelto arriba)
+curl -X POST http://localhost:8000/ask \
+  -H "Content-Type: application/json" \
+  -d '{"question": "¿Y si pagué con transferencia?", "session_id": "<session_id de la respuesta anterior>"}'
+
+# Feedback sobre una respuesta
+curl -X POST http://localhost:8000/feedback \
+  -H "Content-Type: application/json" \
+  -d '{"interaction_id": 1, "feedback": 1}'
+
+# Pregunta por voz
+curl -X POST http://localhost:8000/voice/ask \
+  -F "audio=@pregunta.wav"
 ```
+
+## 🧪 Evaluación
+
+```bash
+# 1. Generar el dataset de ground truth (preguntas sintéticas por chunk)
+python -m evaluation.generate_ground_truth --n-per-chunk 3
+
+# 2. Evaluar retrieval: Hit Rate y MRR de 4 estrategias
+python -m evaluation.evaluate_retrieval
+# -> evaluation/results/retrieval_metrics.md
+
+# 3. Evaluar la calidad de las respuestas generadas (LLM-as-judge + cosine similarity)
+python -m evaluation.evaluate_answers --sample-size 30
+# -> evaluation/results/answer_quality.csv
+```
+
+## 📈 Monitoreo y observabilidad
+
+Con el stack de monitoreo levantado (`docker-compose.monitoring.yml`):
+
+- **Grafana** (`http://localhost:3000`) muestra: preguntas por minuto,
+  latencia p95 total y por etapa del pipeline, errores, distribución de
+  feedback (👍/👎) y estadísticas históricas desde Postgres.
+- **Prometheus** (`http://localhost:9090`) scrapea `GET /metrics` de la API
+  cada 15s.
+- **`GET /stats`** devuelve un resumen rápido (total de interacciones,
+  feedback, latencia promedio) sin necesidad de Grafana.
+
+Para usar Postgres en vez de SQLite, en `.env`:
+
+```bash
+MONITORING_DB_URL=postgresql+psycopg2://bimbam:bimbam@postgres:5432/bimbam_monitoring
+```
+
+## 🎙️ Interfaz de voz
+
+`POST /voice/ask` acepta un archivo de audio (`multipart/form-data`, campo
+`audio`) y devuelve JSON con:
+
+```json
+{
+  "interaction_id": 12,
+  "session_id": "sess-...",
+  "question_transcribed": "¿cuánto tarda un reembolso?",
+  "answer_text": "El reembolso se procesa entre 5 y 10 días hábiles...",
+  "sources": ["politica_reembolsos_devoluciones.pdf"],
+  "answer_audio_base64": "SUQzBAAAAAAA...",
+  "audio_mime_type": "audio/mpeg",
+  "total_latency_ms": 3120.4
+}
+```
+
+> El audio va en base64 (no en headers HTTP) porque el texto de la
+> respuesta en español (con tildes/ñ) no es seguro de transportar en
+> headers HTTP estándar.
 
 ## ❓ Ejemplos de preguntas
 
 - ¿Cuánto tarda en procesarse un reembolso?
+- ¿Y si pagué con transferencia? *(seguimiento, multi-turno)*
 - ¿Puedo devolver un producto después de 10 días?
 - ¿Qué métodos de pago aceptan?
 - ¿Qué cubre la garantía de los productos?
 - Mi pedido está demorado, ¿qué hago?
-- ¿Puedo cancelar un pedido después de haber pagado?
 - ¿Cómo se calcula la comisión de un afiliado si hay una devolución?
 
 ## 💬 Ejemplos de respuestas
 
-Ver el detalle completo, con las fuentes citadas por el agente, en
-[`examples/sample_qa.md`](./examples/sample_qa.md).
+Ver [`examples/sample_qa.md`](./examples/sample_qa.md) para el detalle
+completo con fuentes citadas.
+
+## ☁️ Deploy en Producción (Render)
+
+La aplicación se encuentra desplegada y funcionando en producción mediante un contenedor Docker optimizado en **Render Cloud Services**:
+
+- 🌐 **Web App Interactiva en Producción:** [BimBam Buy · Asistente IA de Soporte](https://bimbam-buy-app.onrender.com/)
+- 📖 **Documentación Swagger / OpenAPI:** [https://bimbam-buy-app.onrender.com/docs](https://bimbam-buy-app.onrender.com/docs)
+- 🏥 **Health Check:** `https://bimbam-buy-app.onrender.com/health` | `https://bimbam-buy-app.onrender.com/health/ready`
+
+### ⚙️ Arquitectura de Ejecución y Eficiencia en Recursos
+
+Para garantizar alta disponibilidad y resiliencia en entornos de computación en la nube con recursos limitados (instancias gratuitas de 512 MB de RAM):
+
+1. **Búsqueda Híbrida RRF de Altísima Precisión:**
+   El agente utiliza directamente el orden de **Búsqueda Híbrida RRF (BM25 + Embeddings ONNX locales)**, que es de altísima precisión, consume **menos de 150 MB de RAM** y responde en **menos de 1 segundo**.
+   - **BM25Okapi:** Recuperación léxica exacta orientada a códigos de tracking, plazos, artículos de garantía y condiciones de devolución.
+   - **Embeddings Locales ONNX (`Xenova/all-MiniLM-L6-v2`):** Recuperación semántica densa empaquetada durante el build del contenedor Docker (`RUN python -m rag.local_embeddings.download`), eliminando la latencia de red de APIs externas y reduciendo costos a cero.
+   - **Reciprocal Rank Fusion (RRF, $k=60$):** Fusión ponderada basada en rankings relativos que combina las fortalezas léxicas y semánticas sin requerir normalización arbitraria de scores.
+
+2. **Mitigación de OOM (Out Of Memory) y Latencia Sub-segundo:**
+   - En entornos cloud con memoria restringida, se desactiva por defecto el cross-encoder de PyTorch (que requiere >1 GB de RAM y causa caídas por OOM / error 502), permitiendo que el pipeline responda de manera instantánea y estable bajo una huella mínima de memoria.
+   - Soporte dinámico para activar el *Cross-Encoder Reranking* vía variable de entorno (`ENABLE_RERANKER=true`) en servidores con infraestructura dedicada o GPU.
+
+3. **Orquestación Multi-proveedor de LLM:**
+   - Integración nativa con **Google Gemini 1.5 Flash** (`langchain-google-genai`), OpenAI (GPT-4o mini) y Cohere (Command R), con auto-detección dinámica de credenciales y resolución de modelos.
+
+4. **Interfaz Web de Usuario Incorporada:**
+   - La raíz `/` expone directamente una interfaz web de chat moderna, responsiva y lista para usar (con soporte para memoria multi-turno, sugerencias interactivas, renderizado de fuentes citadas y botones de feedback 👍/👎 conectados al motor de observabilidad).
 
 ## ☁️ Deploy en Oracle Cloud Infrastructure (OCI)
 
-La aplicación fue empaquetada con Docker (`Dockerfile` /
-`docker-compose.yml`) para poder desplegarse en una instancia de **OCI
-Compute**.
+La aplicación está empaquetada con Docker (`Dockerfile` /
+`docker-compose.yml`) para desplegarse en una instancia de **OCI Compute**.
 
 - **URL pública:** `<completar con la URL de la instancia de OCI>`
-- **Captura de la aplicación en ejecución:** `<agregar screenshot en /docs o /examples>`
-- **Información de la VM de OCI:** `<forma/shape, región y sistema operativo utilizados>`
+- **Captura de la aplicación en ejecución:** `<agregar screenshot>`
+- **Información de la VM de OCI:** `<shape, región y sistema operativo utilizados>`
 
 > Reemplazar esta sección con la evidencia real una vez completado el
-> despliegue (enlace público y/o captura de pantalla).
+> despliegue.
 
 ## 🗂️ Estructura del repositorio
 
 ```text
 bimbam-buy-ai-agent/
-├── app.py                  # API FastAPI (POST /ask, health checks)
-├── rag_engine.py            # Carga de PDFs, chunking, embeddings, cadena RAG
-├── cli.py                   # Chat de terminal para pruebas rápidas
-├── streamlit_app.py         # UI de chat en Streamlit
-├── data/                    # Base de conocimiento (PDFs de BimBam Buy)
+├── app.py                       # API FastAPI (/ask, /feedback, /metrics, /voice/ask)
+├── rag_engine.py                 # Wrapper de compatibilidad -> rag/pipeline.py
+├── cli.py                        # Chat de terminal con memoria multi-turno
+├── streamlit_app.py              # UI de chat en Streamlit (con feedback 👍/👎)
+├── rag/
+│   ├── config.py                  # Configuración centralizada
+│   ├── loaders.py                 # Carga de PDFs + fallback OCR
+│   ├── hybrid_search.py           # BM25 + vectorial + Reciprocal Rank Fusion
+│   ├── reranker.py                # Reranking con cross-encoder
+│   ├── memory.py                  # Memoria multi-turno + contextualización
+│   └── pipeline.py                # Orquestación end-to-end del pipeline RAG
+├── monitoring/
+│   ├── logging_db.py               # Logging de interacciones (SQLite/Postgres)
+│   ├── metrics.py                  # Métricas Prometheus
+│   ├── prometheus.yml              # Config de scraping
+│   └── grafana/                    # Dashboard + datasources provisionados
+├── evaluation/
+│   ├── generate_ground_truth.py    # Dataset sintético de preguntas por chunk
+│   ├── evaluate_retrieval.py       # Hit Rate / MRR (4 estrategias)
+│   └── evaluate_answers.py         # LLM-as-judge + cosine similarity
+├── voice/
+│   ├── stt.py                       # Speech-to-Text (Whisper)
+│   └── tts.py                       # Text-to-Speech
+├── data/                            # Base de conocimiento (PDFs de BimBam Buy)
 ├── examples/
-│   └── sample_qa.md         # Ejemplos de preguntas y respuestas del agente
-├── architecture.mmd         # Diagrama de arquitectura (Mermaid)
+│   └── sample_qa.md                 # Ejemplos de preguntas y respuestas
+├── architecture.mmd                 # Diagrama de arquitectura completo (Mermaid)
 ├── requirements.txt
 ├── Dockerfile
-├── docker-compose.yml
+├── docker-compose.yml                # API + UI
+├── docker-compose.monitoring.yml     # + Postgres + Prometheus + Grafana
 ├── .env.example
 └── README.md
 ```
 
 ## 🚀 Mejoras futuras
 
-- Recuperación multi-documento con re-ranking
-- Memoria conversacional (multi-turno)
-- Búsqueda híbrida (keyword + semántica)
-- Soporte OCR para documentos escaneados
-- Pipeline de evaluación de calidad de respuestas
-- Monitoreo y observabilidad (logs, métricas, trazas)
-- Interfaz de voz
+- Query rewriting adicional para preguntas ambiguas (no solo multi-turno)
+- Caché semántico de respuestas frecuentes
+- Evaluación automática continua (correr `evaluation/` en cada release)
+- Soporte de voz local/offline (faster-whisper + TTS local) para no depender de una API externa
+- Trazas distribuidas (OpenTelemetry) además de métricas y logs
+- Autenticación y rate limiting en la API
 
----
+## 🏆 Proyecto
+
+El objetivo es diseñar, implementar y desplegar un agente potenciado por IA capaz de
+responder preguntas a partir de documentación de negocio, utilizando
+técnicas modernas de IA Generativa y RAG. Esta versión extiende el MVP
+inicial aplicando prácticas de ingeniería de IA de nivel productivo,
+inspiradas en [DataTalksClub/llm-zoomcamp](https://github.com/DataTalksClub/llm-zoomcamp) (vector search, orquestación, evaluación, monitoreo y mejores prácticas de
+RAG como hybrid search y reranking).
