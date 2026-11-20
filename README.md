@@ -176,7 +176,7 @@ audio codificado en base64.
 | LLM / Embeddings         | ChatGPT (OpenAI), Gemini/Gemma (Google) o Cohere — configurable |
 | Voz                      | Whisper (STT) + TTS de OpenAI                                    |
 | API                      | FastAPI                                                          |
-| UI                       | Streamlit                                                        |
+| UI                       | Streamlit (con modo oscuro)                        |
 | Logging de interacciones | SQLAlchemy (SQLite / Postgres)                                   |
 | Métricas                | Prometheus                                                       |
 | Dashboards               | Grafana                                                          |
