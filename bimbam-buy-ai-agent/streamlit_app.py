@@ -25,7 +25,76 @@ from rag.pipeline import get_pipeline
 from rag.memory import new_session_id
 from monitoring.logging_db import log_interaction, save_feedback
 
-st.set_page_config(page_title="BimBam Buy · Soporte AI", page_icon="🤖")
+st.set_page_config(page_title="BimBam Buy · Soporte AI", page_icon="🤖", layout="wide")
+
+# --- Modo oscuro ---
+DARK_CSS = """
+<style>
+body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"], [data-testid="stSidebar"], .stChatMessage, .stExpander {
+    background-color: #1a1a2e !important;
+    color: #e0e0e0 !important;
+}
+.stTextInput input, .stChatInput textarea, .stTextInput textarea {
+    background-color: #16213e !important;
+    color: #e0e0e0 !important;
+    border-color: #0f3460 !important;
+}
+.stChatMessage[data-testid="chatMessage-user"] {
+    background-color: #16213e !important;
+}
+.stChatMessage[data-testid="chatMessage-assistant"] {
+    background-color: #1a1a2e !important;
+}
+.stCaption, .stMarkdown, .stText, .stHeader, .stSubheader, .stButton, .stCheckbox {
+    color: #e0e0e0 !important;
+}
+.stButton > button, .stButton button {
+    background-color: #0f3460 !important;
+    color: #e0e0e0 !important;
+    border: 1px solid #e94560 !important;
+}
+.stButton > button:hover, .stButton button:hover {
+    background-color: #e94560 !important;
+    color: #ffffff !important;
+}
+.stExpander > details > summary, .stExpander > details {
+    background-color: #16213e !important;
+    color: #e0e0e0 !important;
+}
+.stJson, .stDataFrame, [data-testid="stJson"] {
+    background-color: #16213e !important;
+    color: #e0e0e0 !important;
+}
+.stSidebar [data-testid="stWidgetLabel"] {
+    color: #e0e0e0 !important;
+}
+div.stButton > button {
+    background-color: #0f3460 !important;
+    color: #e0e0e0 !important;
+    border: 1px solid #e94560 !important;
+}
+div.stButton > button:hover {
+    background-color: #e94560 !important;
+    color: #ffffff !important;
+}
+</style>
+"""
+
+def _inject_dark_mode():
+    st.markdown(DARK_CSS, unsafe_allow_html=True)
+
+with st.sidebar:
+    st.subheader("⚙️ Configuración")
+    dark_mode = st.toggle("🌙 Modo oscuro", value=False, key="dark_mode_toggle")
+    if dark_mode:
+        _inject_dark_mode()
+    st.markdown("---")
+    st.subheader("Sesión")
+    st.code(st.session_state.session_id)
+    if st.button("🔄 Nueva conversación"):
+        st.session_state.session_id = new_session_id()
+        st.session_state.messages = []
+        st.rerun()
 
 st.title("🤖 BimBam Buy AI Support Agent")
 st.caption(
@@ -101,11 +170,3 @@ if question:
             st.info("Gracias, lo tenemos en cuenta.")
 
     st.session_state.messages.append({"role": "assistant", "content": result["answer"]})
-
-with st.sidebar:
-    st.subheader("Sesión")
-    st.code(st.session_state.session_id)
-    if st.button("Nueva conversación"):
-        st.session_state.session_id = new_session_id()
-        st.session_state.messages = []
-        st.rerun()
